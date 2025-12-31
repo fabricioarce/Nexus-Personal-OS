@@ -1,6 +1,6 @@
-# 📔 Analizador de Diario Personal
+# 📔 Analizador de Diario Personal con Chunking Semántico
 
-Herramienta automatizada para analizar entradas de diario personal usando modelos de lenguaje locales (LM Studio). Procesa carpetas completas de diarios, extrae información estructurada como emociones, temas, personas mencionadas y genera resúmenes neutrales.
+Herramienta automatizada para analizar entradas de diario personal usando modelos de lenguaje locales (LM Studio). Procesa carpetas completas de diarios, extrae información estructurada y divide el contenido en chunks semánticos preparados para embeddings y RAG (Retrieval Augmented Generation).
 
 ## ✨ Características
 
@@ -9,9 +9,11 @@ Herramienta automatizada para analizar entradas de diario personal usando modelo
 - 🔍 **Detección Inteligente**: Solo procesa archivos nuevos, evita duplicados
 - 📊 **Extracción Estructurada**: Genera JSON con emociones, temas y resúmenes
 - 📅 **Gestión Automática de Fechas**: Extrae y valida fechas del nombre del archivo
+- 🧩 **Chunking Semántico**: Divide entradas en fragmentos coherentes (100-300 palabras)
+- 🏷️ **Clasificación de Chunks**: Identifica tipos (hechos, emociones, reflexiones)
+- 💾 **Doble Almacenamiento**: Análisis completo + chunks separados para RAG
 - 🛡️ **Manejo Robusto de Errores**: Validación completa y mensajes claros
 - 📝 **Logging Detallado**: Seguimiento completo del proceso con estadísticas
-- 💾 **Historial Acumulativo**: Mantiene registro de todos los análisis
 - 🔒 **Privacidad Total**: Todo el procesamiento es local
 
 ## 📋 Requisitos Previos
@@ -72,7 +74,7 @@ mkdir diarios
 
 ## 📖 Uso
 
-### Uso Básico (Procesamiento Batch)
+### Uso Básico (Procesamiento Batch con Chunking)
 
 1. **Coloca tus archivos de diario** en la carpeta `diarios/` con el formato `dd-mm-yyyy.md`:
 
@@ -90,29 +92,29 @@ diarios/
 python diary_analyzer.py
 ```
 
-3. **Resultado**: El script procesará todos los archivos nuevos y generará/actualizará `diario.json`
+3. **Resultado**: El script generará dos archivos:
+   - `diario.json` - Análisis completos de cada entrada
+   - `diario_chunks.json` - Chunks semánticos listos para embeddings
 
 ### Ejemplo de Salida
 
 ```
 ============================================================
 INICIANDO PROCESAMIENTO BATCH DE DIARIOS
+Modo: CON CHUNKING SEMÁNTICO
 ============================================================
 Encontrados 4 archivos de diario en 'diarios'
-Encontradas 2 entradas ya procesadas
 Archivos pendientes de procesar: 2
 Modo: SOLO NUEVOS
 Archivos a procesar: 2
 ------------------------------------------------------------
 
 [1/2] Procesando...
-2025-12-31 10:15:23 - INFO - Analizando: 20-12-2025.md (20-12-2025)
+2025-12-31 10:15:23 - INFO - Analizando: 20-12-2025.md (entry_2025_12_20)
+2025-12-31 10:15:24 - DEBUG - Texto dividido en 3 chunks
+2025-12-31 10:15:24 - INFO - Creados 3 chunks para entry_2025_12_20
+2025-12-31 10:15:24 - INFO - ✓ Generados 3 chunks para entry_2025_12_20
 2025-12-31 10:15:25 - INFO - ✓ 20-12-2025.md procesado exitosamente
-Esperando 1 segundo antes del siguiente archivo...
-
-[2/2] Procesando...
-2025-12-31 10:15:26 - INFO - Analizando: 31-12-2025.md (31-12-2025)
-2025-12-31 10:15:28 - INFO - ✓ 31-12-2025.md procesado exitosamente
 
 ============================================================
 RESUMEN DEL PROCESAMIENTO
@@ -120,11 +122,12 @@ RESUMEN DEL PROCESAMIENTO
 Total de archivos: 2
 ✓ Exitosos: 2
 ✗ Fallidos: 0
-⊘ Omitidos: 0
+📦 Chunks generados: 6
 
 🎉 ¡Todos los archivos procesados exitosamente!
 ============================================================
 ✓ Procesamiento completado: 2 archivos analizados
+📦 Total de chunks generados: 6
 ============================================================
 ```
 
@@ -134,18 +137,20 @@ Edita las constantes al final de `diary_analyzer.py`:
 
 ```python
 if __name__ == "__main__":
-    CARPETA_DIARIOS = "mis_diarios"      # Tu carpeta personalizada
-    ARCHIVO_SALIDA = "analisis.json"     # Archivo de salida
-    MODELO_LLM = "mistral-7b-instruct"   # Modelo diferente
-    FORZAR_REPROCESAR = False            # True para reprocesar todo
+    CARPETA_DIARIOS = "mis_diarios"         # Tu carpeta
+    ARCHIVO_SALIDA = "diario.json"          # Análisis completo
+    ARCHIVO_CHUNKS = "diario_chunks.json"   # Chunks para RAG
+    MODELO_LLM = "mistral-7b-instruct"      # Modelo diferente
+    FORZAR_REPROCESAR = False               # Reprocesar todo
+    GENERAR_CHUNKS = True                   # Activar/desactivar chunking
 ```
 
-### Reprocesar Todos los Archivos
+### Desactivar Chunking
 
-Si quieres volver a analizar todos los archivos (incluso los ya procesados):
+Si solo quieres el análisis sin chunks:
 
 ```python
-FORZAR_REPROCESAR = True
+GENERAR_CHUNKS = False
 ```
 
 ### Uso como Módulo
@@ -153,206 +158,397 @@ FORZAR_REPROCESAR = True
 ```python
 from diary_analyzer import procesar_carpeta_diarios
 
-# Procesar carpeta completa
+# Procesar con chunking
 estadisticas = procesar_carpeta_diarios(
     carpeta="diarios",
-    ruta_salida="resultados.json",
-    modelo="liquidai/lfm2-2.6b-exp@f16",
-    forzar_reprocesar=False
+    ruta_salida="diario.json",
+    ruta_chunks="chunks.json",
+    generar_chunks=True
 )
 
-print(f"Procesados: {estadisticas['exitosos']}")
-print(f"Fallidos: {estadisticas['fallidos']}")
+print(f"Chunks generados: {estadisticas['chunks_generados']}")
 ```
 
-### Uso de Funciones Individuales
+## 📄 Formatos de Salida
 
-```python
-from diary_analyzer import (
-    obtener_archivos_diario,
-    obtener_archivos_pendientes,
-    analizar_diario_individual
-)
+### 1. Archivo de Análisis (`diario.json`)
 
-# Ver qué archivos hay
-archivos = obtener_archivos_diario("diarios")
-print(f"Total de archivos: {len(archivos)}")
-
-# Ver cuáles faltan por procesar
-pendientes = obtener_archivos_pendientes("diarios", "diario.json")
-print(f"Pendientes: {len(pendientes)}")
-
-# Procesar uno específico
-from pathlib import Path
-archivo = Path("diarios/15-12-2025.md")
-resultado = analizar_diario_individual(archivo)
-```
-
-## 📄 Formato de Archivos
-
-### Nombre de Archivo (IMPORTANTE)
-
-Los archivos **DEBEN** seguir el formato: `dd-mm-yyyy.md`
-
-✅ **Válidos:**
-- `01-12-2025.md`
-- `15-01-2024.md`
-- `31-12-2025.md`
-
-❌ **Inválidos:**
-- `2025-12-01.md` (formato incorrecto)
-- `1-12-2025.md` (día sin cero)
-- `diario.md` (sin fecha)
-- `15-12-25.md` (año incompleto)
-
-### Contenido del Archivo
-
-Texto libre en formato Markdown:
-
-```markdown
-# 15 de Diciembre, 2025
-
-Hoy fue un día interesante. Me reuní con María para discutir el proyecto.
-Me sentí un poco ansioso al principio, pero luego todo fluyó naturalmente.
-
-Aprendí mucho sobre React y estoy emocionado por implementarlo.
-También hablé con Juan sobre sus planes de viaje.
-
-## Reflexiones
-
-El día fue productivo. Necesito seguir trabajando en mi confianza.
-```
-
-## 📊 Formato de Salida
-
-El análisis se guarda en formato JSON con la siguiente estructura:
+Análisis completo de cada entrada con texto original:
 
 ```json
 [
   {
+    "id": "entry_2025_12_15",
     "fecha": "15-12-2025",
-    "summary": "Reunión productiva sobre proyecto con María. Aprendizaje de React y conversación con Juan sobre viajes.",
+    "raw_text": "# 15 de Diciembre\n\nHoy fue un día interesante...",
+    "summary": "Reunión productiva sobre proyecto con María...",
     "emotions": ["ansioso", "emocionado"],
-    "topics": ["trabajo", "programación", "viajes", "confianza"],
+    "topics": ["trabajo", "programación", "viajes"],
     "people": ["María", "Juan"],
-    "intensity": "media"
-  },
-  {
-    "fecha": "20-12-2025",
-    "summary": "...",
-    "emotions": ["feliz", "relajado"],
-    "topics": ["familia", "descanso"],
-    "people": null,
-    "intensity": "baja"
+    "intensity": "media",
+    "word_count": 342,
+    "char_count": 1876,
+    "chunk_count": 3
   }
 ]
 ```
 
-### Campos del Análisis
+#### Campos del Análisis
 
-- **fecha**: Fecha del diario en formato `dd-mm-yyyy` (extraída del nombre del archivo)
+- **id**: Identificador único (`entry_yyyy_mm_dd`)
+- **fecha**: Fecha en formato `dd-mm-yyyy`
+- **raw_text**: Texto completo original del diario
 - **summary**: Resumen neutral en máximo 3 líneas
-- **emotions**: Lista de emociones detectadas (puede ser lista vacía)
+- **emotions**: Lista de emociones detectadas
 - **topics**: Temas principales discutidos
-- **people**: Personas mencionadas (null si no hay ninguna)
-- **intensity**: Intensidad emocional ("baja", "media" o "alta")
+- **people**: Personas mencionadas (null si no hay)
+- **intensity**: Intensidad emocional ("baja", "media", "alta")
+- **word_count**: Cantidad de palabras
+- **char_count**: Cantidad de caracteres
+- **chunk_count**: Número de chunks generados
+
+### 2. Archivo de Chunks (`diario_chunks.json`)
+
+Chunks semánticos enriquecidos, listos para convertir en embeddings:
+
+```json
+[
+  {
+    "chunk_id": "entry_2025_12_15_chunk_0",
+    "entry_id": "entry_2025_12_15",
+    "index": 0,
+    "text": "Hoy fue un día interesante. Me reuní con María para discutir el proyecto...",
+    "word_count": 156,
+    "char_count": 823,
+    "type": "hechos",
+    "metadata": {
+      "date": "15-12-2025",
+      "emotions": ["ansioso", "emocionado"],
+      "topics": ["trabajo", "programación"],
+      "intensity": "media",
+      "people": ["María", "Juan"]
+    }
+  },
+  {
+    "chunk_id": "entry_2025_12_15_chunk_1",
+    "entry_id": "entry_2025_12_15",
+    "index": 1,
+    "text": "Me sentí un poco ansioso al principio...",
+    "word_count": 98,
+    "char_count": 512,
+    "type": "emociones",
+    "metadata": {
+      "date": "15-12-2025",
+      "emotions": ["ansioso", "emocionado"],
+      "topics": ["trabajo", "programación"],
+      "intensity": "media",
+      "people": ["María", "Juan"]
+    }
+  }
+]
+```
+
+#### Campos de Chunks
+
+- **chunk_id**: ID único del chunk
+- **entry_id**: ID de la entrada padre
+- **index**: Posición del chunk (0, 1, 2...)
+- **text**: Contenido textual del chunk (100-300 palabras)
+- **word_count**: Palabras en el chunk
+- **char_count**: Caracteres en el chunk
+- **type**: Tipo de contenido ("hechos", "emociones", "reflexion", "mixto")
+- **metadata**: Información contextual heredada del análisis
+
+### Tipos de Chunks
+
+El sistema clasifica automáticamente cada chunk:
+
+- **hechos**: Eventos, acciones, descripción de actividades
+- **emociones**: Sentimientos, estados emocionales explícitos
+- **reflexion**: Pensamientos, aprendizajes, introspección
+- **mixto**: Combinación de varios tipos
+
+## 🔮 Próximos Pasos: Embeddings y RAG
+
+### ¿Por qué Chunking?
+
+El chunking prepara tus diarios para:
+
+1. **Búsqueda Semántica**: Encontrar entradas por significado, no solo palabras
+2. **Chatbot de Diario**: Conversar con tus memorias usando IA
+3. **Análisis de Patrones**: Detectar tendencias emocionales a lo largo del tiempo
+4. **Recomendaciones**: "Días similares a hoy", "Cuando te sentías así..."
+
+### Roadmap de Embeddings (Futuro)
+
+#### Fase 1: Generar Embeddings
+
+```python
+# FUTURO - No implementado aún
+from sentence_transformers import SentenceTransformer
+import json
+
+# 1. Cargar modelo de embeddings (pequeño y rápido)
+model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+# o para mejor calidad (más pesado):
+# model = SentenceTransformer('BAAI/bge-small-en-v1.5')
+
+# 2. Cargar chunks
+with open('diario_chunks.json', 'r') as f:
+    chunks = json.load(f)
+
+# 3. Generar embeddings
+for chunk in chunks:
+    embedding = model.encode(chunk['text'])
+    chunk['embedding'] = embedding.tolist()
+
+# 4. Guardar chunks con embeddings
+with open('diario_chunks_embedded.json', 'w') as f:
+    json.dump(chunks, f)
+```
+
+**Modelos recomendados para español**:
+- `hiiamsid/sentence_similarity_spanish_es` (ligero)
+- `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (multilingüe)
+
+#### Fase 2: Crear Base de Datos Vectorial
+
+```python
+# FUTURO - No implementado aún
+import faiss
+import numpy as np
+
+# Opción A: FAISS (más simple, local)
+embeddings = np.array([chunk['embedding'] for chunk in chunks])
+index = faiss.IndexFlatL2(embeddings.shape[1])
+index.add(embeddings)
+faiss.write_index(index, 'diario_vectors.index')
+
+# Opción B: ChromaDB (más features)
+import chromadb
+
+client = chromadb.Client()
+collection = client.create_collection("diario")
+
+for chunk in chunks:
+    collection.add(
+        embeddings=[chunk['embedding']],
+        documents=[chunk['text']],
+        metadatas=[chunk['metadata']],
+        ids=[chunk['chunk_id']]
+    )
+```
+
+#### Fase 3: Búsqueda Semántica
+
+```python
+# FUTURO - Ejemplo de búsqueda
+def buscar_en_diario(query, top_k=5):
+    # Convertir query a embedding
+    query_embedding = model.encode(query)
+    
+    # Buscar similares
+    distances, indices = index.search(
+        np.array([query_embedding]), 
+        top_k
+    )
+    
+    # Devolver chunks relevantes
+    resultados = [chunks[i] for i in indices[0]]
+    return resultados
+
+# Uso
+resultados = buscar_en_diario("días donde me sentí ansioso")
+for chunk in resultados:
+    print(f"Fecha: {chunk['metadata']['date']}")
+    print(f"Texto: {chunk['text'][:100]}...")
+```
+
+#### Fase 4: RAG con Modelo Local (8B)
+
+```python
+# FUTURO - Chatbot con memoria
+import lmstudio as lms
+
+def chatear_con_diario(pregunta):
+    # 1. Buscar contexto relevante
+    chunks_relevantes = buscar_en_diario(pregunta, top_k=3)
+    contexto = "\n\n".join([c['text'] for c in chunks_relevantes])
+    
+    # 2. Construir prompt con contexto
+    prompt = f"""
+    Basándote SOLO en estos fragmentos de mi diario:
+    
+    {contexto}
+    
+    Responde a mi pregunta: {pregunta}
+    
+    Sé empático y personal. Usa "tú" para dirigirte a mí.
+    """
+    
+    # 3. Usar modelo local (ej: Llama-3-8B, Mistral-7B)
+    with lms.Client() as client:
+        model = client.llm.model("llama-3-8b-instruct")
+        response = model.respond(prompt)
+        return response.content
+
+# Uso
+respuesta = chatear_con_diario("¿Cómo me sentí en diciembre?")
+print(respuesta)
+```
+
+### Modelos Recomendados para RAG (8B locales)
+
+1. **Llama 3.1 8B Instruct** - Excelente balance calidad/velocidad
+2. **Mistral 7B Instruct** - Muy rápido, buena calidad
+3. **Phi-3 Medium (14B)** - Si tienes más RAM
+4. **Gemma 2 9B** - Alternativa de Google
+
+### Herramientas para el Pipeline Completo
+
+```bash
+# Instalar dependencias futuras
+pip install sentence-transformers
+pip install faiss-cpu  # o faiss-gpu si tienes NVIDIA
+pip install chromadb   # alternativa a FAISS
+pip install numpy
+```
+
+### Arquitectura Futura del Sistema
+
+```
+┌─────────────────┐
+│  diarios/*.md   │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ diary_analyzer  │ ← ACTUAL
+│  .py (LLM 2.6B) │
+└────────┬────────┘
+         │
+         ├─► diario.json (análisis)
+         │
+         └─► diario_chunks.json (chunks)
+                    │
+                    ▼
+         ┌──────────────────┐
+         │  embedding.py    │ ← FUTURO
+         │  (all-MiniLM)    │
+         └─────────┬────────┘
+                   │
+                   └─► diario_vectors.db
+                              │
+                              ▼
+                   ┌──────────────────┐
+                   │   rag_chat.py    │ ← FUTURO
+                   │  (Llama 3 8B)    │
+                   └──────────────────┘
+```
+
+### Casos de Uso Futuros
+
+1. **Búsqueda Contextual**:
+   ```
+   Usuario: "días donde estuve con María"
+   Sistema: [muestra chunks relevantes con fechas]
+   ```
+
+2. **Análisis Temporal**:
+   ```
+   Usuario: "¿cómo cambió mi ansiedad este mes?"
+   Sistema: [busca chunks de "ansiedad", analiza tendencia]
+   ```
+
+3. **Conversación Natural**:
+   ```
+   Usuario: "dame consejos basados en cómo superé problemas antes"
+   Sistema: [busca entradas de superación, genera consejo]
+   ```
+
+4. **Reflexión Asistida**:
+   ```
+   Usuario: "¿qué he aprendido sobre el trabajo?"
+   Sistema: [busca reflexiones sobre trabajo, sintetiza]
+   ```
 
 ## 🔧 Configuración Avanzada
 
-### Cambiar el Modelo
+### Ajustar Tamaño de Chunks
 
-Puedes usar cualquier modelo compatible con LM Studio:
-
-```python
-MODELO_LLM = "mistral-7b-instruct"
-# o
-MODELO_LLM = "llama-2-7b-chat"
-# o
-MODELO_LLM = "phi-2"
-```
-
-### Ajustar el Logging
-
-Modifica el nivel de logging al inicio del script:
+En `diary_analyzer.py`, modifica la función `dividir_en_chunks_semanticos`:
 
 ```python
-logging.basicConfig(
-    level=logging.DEBUG,  # DEBUG, INFO, WARNING, ERROR
-    format='%(asctime)s - %(levelname)s - %(message)s'
+chunks = dividir_en_chunks_semanticos(
+    texto,
+    min_palabras=50,   # Mínimo por chunk
+    max_palabras=200   # Máximo por chunk
 )
 ```
 
-### Cambiar Tiempo de Espera Entre Archivos
+**Recomendaciones**:
+- **Para embeddings pequeños** (all-MiniLM): 100-300 palabras
+- **Para embeddings grandes** (bge-large): 200-500 palabras
+- **Para textos cortos**: reduce a 50-150 palabras
 
-En la función `procesar_carpeta_diarios`, busca:
+### Personalizar Clasificación de Chunks
+
+Edita las palabras clave en `clasificar_tipo_chunk()`:
 
 ```python
-time.sleep(1)  # Cambiar a 2, 3, etc.
+# Agregar tus propias palabras indicadoras
+palabras_emocionales = [
+    'sentí', 'siento', 'feliz', 'triste',
+    # Agrega más según tu vocabulario
+]
 ```
 
 ## 🐛 Solución de Problemas
 
-### Error: "La carpeta 'diarios' no existe"
+### No se generan chunks
+
+**Causa**: `GENERAR_CHUNKS = False` o texto muy corto
 
 **Solución**: 
-```bash
-mkdir diarios
-```
+- Verifica que `GENERAR_CHUNKS = True`
+- Asegúrate de que las entradas tengan al menos 100 palabras
 
-### Error: "No se encontraron archivos de diario válidos"
+### Chunks muy grandes o pequeños
 
-**Causas posibles**:
-- Los archivos no siguen el formato `dd-mm-yyyy.md`
-- La carpeta está vacía
-- Los archivos no tienen extensión `.md`
+**Solución**: Ajusta los parámetros de `dividir_en_chunks_semanticos()`
 
-**Solución**:
-```bash
-# Renombrar archivos al formato correcto
-mv diario-2025-12-15.md 15-12-2025.md
-```
+### Tipo de chunk siempre "mixto"
 
-### Error: "No se pudo conectar con LM Studio"
+**Causa**: Las palabras clave no coinciden con tu vocabulario
 
-**Solución**: 
-- Verifica que LM Studio esté abierto
-- Confirma que el servidor local esté activo
-- Revisa que el puerto sea el correcto (por defecto 1234)
+**Solución**: Personaliza las listas de palabras en `clasificar_tipo_chunk()`
 
-### Archivos ya procesados no se detectan
+### Archivo chunks.json muy grande
 
-**Causa**: El campo `fecha` no existe en el JSON
-
-**Solución**:
-```python
-# Forzar reprocesamiento
-FORZAR_REPROCESAR = True
-```
-
-### Error: "Fecha inválida"
-
-**Causa**: El nombre del archivo tiene una fecha imposible (ej: `32-13-2025.md`)
-
-**Solución**: Corrige el nombre del archivo a una fecha válida
-
-### Algunos archivos fallan pero otros no
-
-**Comportamiento normal**: El script continúa procesando aunque algunos fallen
-
-**Revisa los logs** para ver qué archivos fallaron y por qué
+**Normal**: Si tienes muchas entradas, considera:
+- Usar base de datos vectorial en lugar de JSON
+- Comprimir el archivo: `gzip diario_chunks.json`
 
 ## 📁 Estructura del Proyecto
 
 ```
 diary-analyzer/
-├── diary_analyzer.py      # Script principal
-├── README.md              # Esta documentación
-├── .venv/                 # Entorno virtual (opcional)
-├── diarios/              # Carpeta con tus archivos .md
+├── diary_analyzer.py           # Script principal
+├── README.md                   # Esta documentación
+├── requirements.txt            # Dependencias
+├── .venv/                      # Entorno virtual
+├── diarios/                    # Carpeta con archivos .md
 │   ├── 01-12-2025.md
 │   ├── 15-12-2025.md
 │   └── 31-12-2025.md
-└── diario.json           # Historial de análisis (generado)
+├── diario.json                # Análisis completos (generado)
+└── diario_chunks.json         # Chunks semánticos (generado)
+
+# Futuros archivos (no implementados aún)
+├── embedding_generator.py     # FUTURO: Generar embeddings
+├── vector_db.py              # FUTURO: Gestión de vectores
+├── rag_chat.py               # FUTURO: Chatbot con RAG
+└── diario_vectors.db         # FUTURO: Base de datos vectorial
 ```
 
 ## 🔒 Privacidad y Seguridad
@@ -360,166 +556,136 @@ diary-analyzer/
 - ✅ Todo el procesamiento es **100% local**
 - ✅ No se envían datos a servicios externos
 - ✅ Tus diarios permanecen en tu computadora
+- ✅ Los embeddings (futuros) también serán locales
 - ✅ Sin conexión a internet requerida (excepto instalación inicial)
-- ✅ El historial se guarda solo en tu máquina
 
 ## 🤝 Contribuciones
 
-Las contribuciones son bienvenidas. Por favor:
+Las contribuciones son bienvenidas, especialmente:
+
+- [ ] Implementación de generación de embeddings
+- [ ] Integración con ChromaDB/FAISS
+- [ ] Sistema RAG completo
+- [ ] Interfaz de chat
+- [ ] Mejoras en clasificación de chunks
+
+Por favor:
 
 1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit tus cambios (`git commit -m 'Agregar nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+2. Crea una rama para tu feature (`git checkout -b feature/embeddings`)
+3. Commit tus cambios (`git commit -m 'feat: agregar embeddings'`)
+4. Push a la rama (`git push origin feature/embeddings`)
 5. Abre un Pull Request
 
-## 📝 Ejemplos de Uso Avanzado
+## 📝 Ejemplos de Uso
 
-### Obtener Estadísticas del Historial
+### Analizar Estadísticas de Chunks
 
 ```python
 import json
-from pathlib import Path
 from collections import Counter
-from datetime import datetime
 
-# Cargar historial
-data = json.loads(Path("diario.json").read_text())
+# Cargar chunks
+with open('diario_chunks.json') as f:
+    chunks = json.load(f)
 
-# Emociones más comunes
-todas_emociones = []
-for entrada in data:
-    todas_emociones.extend(entrada.get("emotions", []))
+# Tipos de chunks más comunes
+tipos = [c['type'] for c in chunks]
+print(Counter(tipos))
 
-contador = Counter(todas_emociones)
-print("Emociones más frecuentes:")
-for emocion, count in contador.most_common(5):
-    print(f"  {emocion}: {count}")
+# Chunks por entrada
+from collections import defaultdict
+chunks_por_entrada = defaultdict(int)
+for c in chunks:
+    chunks_por_entrada[c['entry_id']] += 1
 
-# Intensidad promedio
-intensidades = {"baja": 1, "media": 2, "alta": 3}
-total = sum(intensidades.get(e.get("intensity", "media"), 2) for e in data)
-promedio = total / len(data) if data else 0
-print(f"\nIntensidad emocional promedio: {promedio:.2f}/3")
-
-# Días analizados
-print(f"\nTotal de días analizados: {len(data)}")
+print(f"Promedio de chunks por entrada: {sum(chunks_por_entrada.values()) / len(chunks_por_entrada):.2f}")
 ```
 
-### Filtrar por Fecha
+### Buscar Chunks por Tipo
 
 ```python
-from datetime import datetime
+def buscar_por_tipo(tipo, limite=5):
+    with open('diario_chunks.json') as f:
+        chunks = json.load(f)
+    
+    resultado = [c for c in chunks if c['type'] == tipo]
+    return resultado[:limite]
 
-def filtrar_por_mes(historial, mes, anio):
-    """Filtra entradas de un mes específico"""
-    resultado = []
-    for entrada in historial:
-        fecha = datetime.strptime(entrada['fecha'], '%d-%m-%Y')
-        if fecha.month == mes and fecha.year == anio:
-            resultado.append(entrada)
-    return resultado
-
-# Cargar historial
-data = json.loads(Path("diario.json").read_text())
-
-# Ver diciembre 2025
-diciembre = filtrar_por_mes(data, 12, 2025)
-print(f"Entradas en diciembre 2025: {len(diciembre)}")
+# Ver chunks de emociones
+emociones = buscar_por_tipo('emociones')
+for chunk in emociones:
+    print(f"Fecha: {chunk['metadata']['date']}")
+    print(f"Texto: {chunk['text'][:100]}...")
+    print()
 ```
 
-### Buscar por Persona
-
-```python
-def buscar_menciones_persona(historial, nombre):
-    """Encuentra todas las entradas donde se menciona a una persona"""
-    resultado = []
-    for entrada in historial:
-        personas = entrada.get('people', [])
-        if personas and nombre in personas:
-            resultado.append({
-                'fecha': entrada['fecha'],
-                'summary': entrada['summary']
-            })
-    return resultado
-
-# Buscar menciones de María
-menciones = buscar_menciones_persona(data, "María")
-print(f"María fue mencionada {len(menciones)} veces")
-for mencion in menciones:
-    print(f"  {mencion['fecha']}: {mencion['summary'][:50]}...")
-```
-
-### Exportar a CSV
+### Exportar Chunks a CSV
 
 ```python
 import csv
 
-def exportar_a_csv(historial, nombre_archivo="diario.csv"):
-    """Exporta el historial a formato CSV"""
-    with open(nombre_archivo, 'w', newline='', encoding='utf-8') as f:
-        campos = ['fecha', 'summary', 'emotions', 'topics', 'people', 'intensity']
+def exportar_chunks_csv(archivo_salida='chunks.csv'):
+    with open('diario_chunks.json') as f:
+        chunks = json.load(f)
+    
+    with open(archivo_salida, 'w', newline='', encoding='utf-8') as f:
+        campos = ['chunk_id', 'entry_id', 'date', 'type', 'text', 'word_count']
         writer = csv.DictWriter(f, fieldnames=campos)
         
         writer.writeheader()
-        for entrada in historial:
-            # Convertir listas a strings
-            row = entrada.copy()
-            if row.get('emotions'):
-                row['emotions'] = ', '.join(row['emotions'])
-            if row.get('topics'):
-                row['topics'] = ', '.join(row['topics'])
-            if row.get('people'):
-                row['people'] = ', '.join(row['people'])
-            writer.writerow(row)
+        for chunk in chunks:
+            writer.writerow({
+                'chunk_id': chunk['chunk_id'],
+                'entry_id': chunk['entry_id'],
+                'date': chunk['metadata']['date'],
+                'type': chunk['type'],
+                'text': chunk['text'],
+                'word_count': chunk['word_count']
+            })
 
-# Usar
-data = json.loads(Path("diario.json").read_text())
-exportar_a_csv(data)
-print("Exportado a diario.csv")
-```
-
-### Procesar Solo Archivos de un Mes
-
-```python
-from pathlib import Path
-from datetime import datetime
-
-def procesar_mes_especifico(carpeta, mes, anio):
-    """Procesa solo archivos de un mes específico"""
-    archivos = obtener_archivos_diario(carpeta)
-    
-    archivos_filtrados = []
-    for archivo in archivos:
-        fecha_str = extraer_fecha_de_nombre(archivo.name)
-        if fecha_str:
-            fecha = datetime.strptime(fecha_str, '%d-%m-%Y')
-            if fecha.month == mes and fecha.year == anio:
-                archivos_filtrados.append(archivo)
-    
-    print(f"Procesando {len(archivos_filtrados)} archivos de {mes}/{anio}")
-    
-    for archivo in archivos_filtrados:
-        analizar_diario_individual(archivo)
-
-# Procesar solo diciembre 2025
-procesar_mes_especifico("diarios", 12, 2025)
+exportar_chunks_csv()
 ```
 
 ## 🗺️ Roadmap
 
-- [ ] Interfaz gráfica (GUI)
-- [ ] Dashboard web con visualizaciones
-- [ ] Gráficos de emociones a lo largo del tiempo
-- [ ] Exportación a PDF/HTML/CSV
-- [ ] Búsqueda avanzada (por fecha/emoción/persona/tema)
-- [ ] Detección de patrones y tendencias
-- [ ] Notificaciones para recordar escribir
-- [ ] Soporte para múltiples idiomas
-- [ ] Integración con Obsidian/Notion
-- [ ] Tests unitarios completos
-- [ ] API REST opcional
-- [ ] Sincronización entre dispositivos (opcional)
+### Versión Actual (2.0)
+- [x] Procesamiento batch de carpetas
+- [x] Chunking semántico automático
+- [x] Clasificación de tipos de chunks
+- [x] Doble almacenamiento (análisis + chunks)
+
+### Próximas Versiones
+
+**v2.1 - Embeddings** (próximo)
+- [ ] Script para generar embeddings
+- [ ] Integración con sentence-transformers
+- [ ] Soporte para modelos en español
+- [ ] Actualización incremental de embeddings
+
+**v2.2 - Base de Datos Vectorial**
+- [ ] Integración con FAISS
+- [ ] Alternativa con ChromaDB
+- [ ] Búsqueda por similitud semántica
+- [ ] API de consulta
+
+**v3.0 - RAG Completo**
+- [ ] Chatbot conversacional
+- [ ] Integración con modelos 8B locales
+- [ ] Memoria conversacional
+- [ ] Interfaz de chat (CLI)
+
+**v3.1 - Interfaz Gráfica**
+- [ ] GUI con Streamlit/Gradio
+- [ ] Visualización de embeddings (t-SNE/UMAP)
+- [ ] Gráficos de emociones temporales
+- [ ] Dashboard interactivo
+
+**Futuro**
+- [ ] Análisis de patrones y tendencias
+- [ ] Recomendaciones basadas en contexto
+- [ ] Exportación a múltiples formatos
+- [ ] App móvil (opcional)
 
 ## 📄 Licencia
 
@@ -533,9 +699,10 @@ Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detall
 
 ## 🙏 Agradecimientos
 
-- [LM Studio](https://lmstudio.ai) por proporcionar una excelente plataforma local
+- [LM Studio](https://lmstudio.ai) por la plataforma local de LLMs
 - [Liquid AI](https://liquid.ai) por el modelo LFM
-- La comunidad de código abierto
+- [Sentence Transformers](https://www.sbert.net/) por los embeddings
+- La comunidad de RAG y búsqueda semántica
 
 ## 📞 Soporte
 
@@ -543,15 +710,27 @@ Si tienes problemas o preguntas:
 
 1. Revisa la sección de [Solución de Problemas](#-solución-de-problemas)
 2. Busca en [Issues](https://github.com/tu-usuario/diary-analyzer/issues)
-3. Abre un nuevo issue con detalles específicos:
+3. Abre un nuevo issue con:
    - Versión de Python
    - Sistema operativo
    - Mensaje de error completo
    - Logs relevantes
+   - Ejemplo del archivo de diario (si es posible)
 
 ## 🔄 Changelog
 
-### v2.0.0 (2025-01-01)
+### v2.0.0 (2025-01-01) - ACTUAL
+- ✨ **Chunking semántico automático**
+- ✨ División inteligente por párrafos (100-300 palabras)
+- ✨ Clasificación automática de chunks (hechos/emociones/reflexión)
+- ✨ Doble almacenamiento: análisis + chunks
+- ✨ IDs únicos para entries y chunks
+- ✨ Metadata enriquecida en cada chunk
+- ✨ Campo `raw_text` en análisis principal
+- 📝 Documentación completa sobre embeddings futuros
+- 📝 Roadmap detallado para RAG
+
+### v1.1.0 (2024-12-25)
 - ✨ Procesamiento batch de carpetas completas
 - ✨ Detección automática de archivos ya procesados
 - ✨ Extracción y validación de fechas desde nombres de archivo
