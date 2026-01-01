@@ -236,21 +236,25 @@ def crear_chunks_enriquecidos(
     try:
         chunks_llm = chunkear_con_llm(texto, modelo)
         logger.info(f"Chunking LLM exitoso ({len(chunks_llm)} chunks)")
-    except Exception:
-        logger.warning("Usando fallback heurístico de chunking")
-        chunks_llm = [
-            {
-                "index": i,
-                "type": clasificar_tipo_chunk(t, analisis),
-                "text": t
-            }
-            for i, t in enumerate(dividir_en_chunks_semanticos(texto))
-        ]
+    except Exception as e:
+        logger.error("Chunking con LLM falló y fallback está desactivado")
+        raise
+        # logger.warning("Usando fallback heurístico de chunking")
+        # chunks_llm = [
+        #     {
+        #         "index": i,
+        #         "type": clasificar_tipo_chunk(t, analisis),
+        #         "text": t
+        #     }
+        #     for i, t in enumerate(dividir_en_chunks_semanticos(texto))
+        # ]
 
     chunks_enriquecidos = []
 
     for chunk in chunks_llm:
         chunk_texto = chunk["text"]
+
+        chunk_metadata = chunk.get("metadata") or {}
 
         enriched = {
             "chunk_id": generar_id_chunk(entry_id, chunk["index"]),
@@ -259,20 +263,22 @@ def crear_chunks_enriquecidos(
             "text": chunk_texto,
             "word_count": len(chunk_texto.split()),
             "char_count": len(chunk_texto),
-            "type": chunk["type"],
+            "type": chunk.get("type"),
             "metadata": {
+                **chunk_metadata,
                 "date": analisis["fecha"],
-                "emotions": analisis.get("emotions", []),
-                "topics": analisis.get("topics", []),
-                "intensity": analisis.get("intensity"),
-                "people": analisis.get("people"),
-                "source": "llm" if "chunks_llm" in locals() else "heuristic"
+                # "emotions": analisis.get("emotions", []),
+                # "topics": analisis.get("topics", []),
+                # "intensity": analisis.get("intensity"),
+                # "people": analisis.get("people"),
+                # "source": "llm" if "chunks_llm" in locals() else "heuristic"
             }
         }
 
         chunks_enriquecidos.append(enriched)
 
     return chunks_enriquecidos
+
 
 
 def obtener_archivos_diario(carpeta: str) -> List[Path]:
@@ -471,36 +477,99 @@ def chunkear_con_llm(
         }
     """
     prompt = f"""
-INSTRUCCIONES:
-Divide el siguiente texto de diario personal en fragmentos semánticos coherentes.
+Eres un modelo de lenguaje encargado de procesar entradas de un diario personal.
 
-REGLAS:
-- No inventes información
-- No agregues contenido nuevo
-- Puedes reformular ligeramente, pero mantén el significado
-- Usa "mixto" si el fragmento combina varios tipos
-- No expliques nada
+Tu tarea es:
+1. Dividir TODO el texto en CHUNKS SEMÁNTICOS.
+2. Cada chunk debe ser coherente, completo y autosuficiente.
+3. Enriquecer cada chunk con metadatos SOLO si están explícitamente justificados por el texto del chunk.
+4. No inventar información.
+5. No asumir contexto externo.
+6. No interpretar más allá de lo escrito.
 
-TIPOS PERMITIDOS:
-- hechos
-- emociones
-- reflexion
-- mixto
+────────────────────────
+REGLAS DE CHUNKING (OBLIGATORIAS)
+────────────────────────
 
-SALIDA:
+DEFINICIÓN DE CHUNK:
+Un chunk es una unidad narrativa completa que desarrolla UNA idea principal.
+Puede incluir varias oraciones o párrafos mientras sigan siendo la misma idea.
+
+OBLIGATORIO:
+- TODO el texto original debe quedar cubierto.
+- NO omitas ningún fragmento.
+- NO reescribas ni resumas el texto.
+- El texto del chunk debe ser EXACTAMENTE el original.
+
+TAMAÑO:
+- Un chunk NO PUEDE tener menos de 40 palabras.
+- Si una oración o párrafo es corto, DEBES fusionarlo con el siguiente relacionado.
+- Máximo recomendado: 80–120 palabras.
+- Prefiere chunks grandes y coherentes antes que muchos pequeños.
+
+COHERENCIA SEMÁNTICA:
+- NO crees un nuevo chunk solo por cambio de línea.
+- NO separes listas, presentaciones o descripciones relacionadas.
+- Si el texto presenta varias personas dentro de la misma sección narrativa,
+  DEBEN permanecer en el mismo chunk.
+- Si una idea continúa, DEBE permanecer en el mismo chunk.
+- No mezcles ideas claramente distintas en un mismo chunk.
+
+────────────────────────
+TIPO DE CHUNK
+────────────────────────
+Asigna SOLO UNO:
+- hechos → descripción de eventos o situaciones
+- reflexion → pensamientos, evaluaciones personales
+- emociones → expresión emocional clara
+- mixto → hechos + reflexión o emoción inseparables
+
+────────────────────────
+METADATOS (SOLO SI SON EXPLÍCITOS)
+────────────────────────
+
+Incluye metadatos SOLO si el texto lo justifica claramente.
+
+- emotions:
+  - Máximo 2
+  - SOLO si la emoción está explícitamente expresada en el texto
+- topics:
+  - Temas directamente mencionados
+- people:
+  - SOLO nombres que aparecen explícitamente en el texto del chunk
+  - NO incluyas categorías genéricas
+- intensity:
+  - baja | media | alta
+  - SOLO si hay carga emocional clara
+
+SI UN DATO NO ES CLARO, NO LO INCLUYAS.
+NO infieras.
+NO completes campos por obligación.
+
+────────────────────────
+SALIDA OBLIGATORIA (FORMATO EXACTO)
+────────────────────────
+
 Devuelve SOLO un JSON válido con esta estructura exacta:
 
 {{
   "chunks": [
     {{
       "index": 0,
-      "type": "emociones",
-      "text": "..."
+      "type": "emociones | reflexion | hechos | mixto",
+      "text": "texto del chunk",
+      "metadata": {{
+        "people": []
+      }}
     }}
   ]
 }}
 
-TEXTO:
+NO agregues texto fuera del JSON.
+NO agregues campos adicionales.
+
+────────────────────────
+TEXTO A PROCESAR:
 <<<{texto}>>>
 """
 
@@ -874,8 +943,8 @@ if __name__ == "__main__":
     CARPETA_DIARIOS = "diarios"              # Carpeta con los archivos .md
     ARCHIVO_SALIDA = "diario.json"           # Archivo JSON de análisis
     ARCHIVO_CHUNKS = "diario_chunks.json"    # Archivo JSON de chunks
-    MODELO_LLM = "liquidai/lfm2-2.6b-exp@f16"
-    FORZAR_REPROCESAR = False                # True para reprocesar todo
+    MODELO_LLM = "lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF" #"liquidai/lfm2-2.6b-exp@f16"
+    FORZAR_REPROCESAR = True                # True para reprocesar todo
     GENERAR_CHUNKS = True                    # True para generar chunks semánticos
     
     # Ejecutar procesamiento batch
