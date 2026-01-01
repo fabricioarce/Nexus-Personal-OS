@@ -941,8 +941,8 @@ def procesar_carpeta_diarios(
 if __name__ == "__main__":
     # Configuración
     CARPETA_DIARIOS = "diarios"              # Carpeta con los archivos .md
-    ARCHIVO_SALIDA = "diario.json"           # Archivo JSON de análisis
-    ARCHIVO_CHUNKS = "diario_chunks.json"    # Archivo JSON de chunks
+    ARCHIVO_SALIDA = "data/diario.json"           # Archivo JSON de análisis
+    ARCHIVO_CHUNKS = "data/diario_chunks.json"    # Archivo JSON de chunks
     MODELO_LLM = "lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF" #"liquidai/lfm2-2.6b-exp@f16"
     FORZAR_REPROCESAR = True                # True para reprocesar todo
     GENERAR_CHUNKS = True                    # True para generar chunks semánticos

@@ -136,9 +136,9 @@ if __name__ == "__main__":
     indexer = DiarioVectorIndexer()
 
     indexer.indexar_desde_chunks(
-        archivo_chunks="diario_chunks.json",
-        ruta_index="diario_index.faiss",
-        ruta_metadata="diario_metadata.json"
+        archivo_chunks="data/diario_chunks.json",
+        ruta_index="data/diario_index.faiss",
+        ruta_metadata="data/diario_metadata.json"
     )
 
     logger.info("✓ Indexación del diario completada con éxito")
