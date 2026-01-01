@@ -13,6 +13,7 @@ diarios/
 *.md
 diario.json
 diario_chunks.json
+diario_metadata.json
 
 # Futuros archivos (embeddings)
 diario_vectors.db
