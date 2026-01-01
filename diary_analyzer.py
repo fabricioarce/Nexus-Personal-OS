@@ -944,7 +944,7 @@ if __name__ == "__main__":
     ARCHIVO_SALIDA = "data/diario.json"           # Archivo JSON de análisis
     ARCHIVO_CHUNKS = "data/diario_chunks.json"    # Archivo JSON de chunks
     MODELO_LLM = "lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF" #"liquidai/lfm2-2.6b-exp@f16"
-    FORZAR_REPROCESAR = True                # True para reprocesar todo
+    FORZAR_REPROCESAR = False                # True para reprocesar todo
     GENERAR_CHUNKS = True                    # True para generar chunks semánticos
     
     # Ejecutar procesamiento batch

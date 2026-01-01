@@ -51,3 +51,16 @@ echo "🧩 [2/4] Generando embeddings..."
 python embedding_generator.py
 
 # =========================
+# 3. Actualización FAISS
+# =========================
+echo ""
+echo "📦 [3/4] Actualizando índice vectorial..."
+python query_engine.py --build-index
+
+# =========================
+# 4. Chat RAG activo
+# =========================
+echo ""
+echo "💬 [4/4] Iniciando chat con memoria del diario"
+echo "=============================================="
+python rag_chat_engine.py
