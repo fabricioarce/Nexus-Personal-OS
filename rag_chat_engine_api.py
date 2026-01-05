@@ -1,17 +1,31 @@
 import requests
 import logging
+import os
+from dotenv import load_dotenv
 
 from query_engine import DiarioQueryEngine
 
-LM_STUDIO_URL = "http://localhost:1234/v1/chat/completions"
-MODEL_NAME = "local-model"  # LM Studio ignora el nombre, pero es obligatorio
-
 # ============================================================
-# PROMPT DEL SISTEMA (EL TUYO)
+# CONFIGURACIÓN GROQ
 # ============================================================
 
-SYSTEM_PROMPT = """
-Rol y límites
+load_dotenv()
+
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+
+print("API key cargada:", bool(GROQ_API_KEY))
+
+if not GROQ_API_KEY:
+    raise RuntimeError("GROQ_API_KEY no está definida en el .env")
+
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+MODEL_NAME = "openai/gpt-oss-120b"  # ejemplo válido en Groq
+
+# ============================================================
+# PROMPT DEL SISTEMA
+# ============================================================
+
+SYSTEM_PROMPT = """Rol y límites
 Eres un asistente de reflexión personal y toma de decisiones:
 
 Ayuda a:
@@ -148,10 +162,21 @@ Pregunta del usuario:
             "temperature": 0.4
         }
 
-        response = requests.post(LM_STUDIO_URL, json=payload)
-        response.raise_for_status()
+        headers = {
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json"
+        }
 
+        response = requests.post(
+            GROQ_API_URL,
+            json=payload,
+            headers=headers,
+            timeout=30
+        )
+
+        response.raise_for_status()
         data = response.json()
+
         return data["choices"][0]["message"]["content"]
 
 

@@ -20,6 +20,7 @@ diario_vectors.db
 diario_chunks_embedded.json
 *.index
 *.faiss
+.env
 
 # IDE
 .vscode/
