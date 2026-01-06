@@ -13,6 +13,8 @@ import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
+from backend.app.config import FAISS_INDEX_FILE, METADATA_FILE
+
 
 # ============================================================
 # LOGGING
@@ -38,9 +40,7 @@ class DiarioQueryEngine:
 
     def __init__(
         self,
-        model_name: str = "intfloat/multilingual-e5-small",
-        index_path: str = "data/diario_index.faiss",
-        metadata_path: str = "data/diario_metadata.json"
+        model_name: str = "intfloat/multilingual-e5-small"
     ):
         logger.info("Inicializando motor de consulta")
 
@@ -50,15 +50,15 @@ class DiarioQueryEngine:
             device="cpu"
         )
 
+        logger.info(f"Cargando índice FAISS: {FAISS_INDEX_FILE}")
+        self.index = faiss.read_index(str(FAISS_INDEX_FILE))
 
-        logger.info(f"Cargando índice FAISS: {index_path}")
-        self.index = faiss.read_index(index_path)
-
-        logger.info(f"Cargando metadata: {metadata_path}")
-        with open(metadata_path, "r", encoding="utf-8") as f:
+        logger.info(f"Cargando metadata: {METADATA_FILE}")
+        with open(METADATA_FILE, "r", encoding="utf-8") as f:
             self.metadata = json.load(f)
 
         logger.info("Motor listo")
+
 
     # --------------------------------------------------------
 

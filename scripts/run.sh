@@ -32,44 +32,51 @@ if [ -f "requirements.txt" ]; then
 fi
 
 # -------------------------
-# Estructura mínima
+# Estructura mínima (alineada al backend)
 # -------------------------
-mkdir -p diarios data
+mkdir -p \
+  data/diary/entries \
+  data/diary/processed \
+  data/raw
 
 # =========================
 # 1. Análisis del diario
 # =========================
 echo ""
 echo "🧠 [1/4] Analizando entradas del diario..."
-python diary_analyzer.py
+python -m backend.app.core.diary_analyzer
 
 sleep 5
+
 # =========================
 # 2. Generación de embeddings
 # =========================
 echo ""
 echo "🧩 [2/4] Generando embeddings..."
-python embedding_generator.py
+python -m backend.app.core.embedding_generator
 
 sleep 5
+
 # =========================
 # 3. Actualización FAISS
 # =========================
 echo ""
 echo "📦 [3/4] Actualizando índice vectorial..."
-python query_engine.py --build-index
+python -m backend.app.core.query_engine --build-index
 
 sleep 5
+
 # =========================
-# 4. Chat RAG activo
+# 4. Chat RAG
 # =========================
+echo ""
 echo "¿Cómo quieres usar el sistema?"
 echo "1) Interfaz gráfica"
 echo "2) Chat por terminal"
 read -p "> " opcion
 
 if [ "$opcion" == "1" ]; then
-  streamlit run app.py
+  streamlit run backend/app/ui/app.py
 else
-  python rag_chat_engine.py
+  python -m backend.app.core.rag_chat_engine
 fi

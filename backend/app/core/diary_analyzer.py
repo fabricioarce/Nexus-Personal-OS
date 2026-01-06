@@ -338,7 +338,7 @@ def crear_chunks_enriquecidos(
 
 
 
-def obtener_archivos_diario(carpeta: str) -> List[Path]:
+def obtener_archivos_diario(carpeta: Path) -> List[Path]:
     """
     Obtiene todos los archivos de diario válidos de una carpeta.
     
@@ -410,8 +410,8 @@ def obtener_fechas_procesadas(ruta_json: str = "diario.json") -> Set[str]:
 
 
 def obtener_archivos_pendientes(
-    carpeta: str,
-    ruta_json: str = "diario.json"
+    carpeta: Path,
+    ruta_json: Path
 ) -> List[Path]:
     """
     Obtiene los archivos que aún no han sido procesados.
@@ -817,7 +817,7 @@ def parsear_analisis(json_texto: str, fecha: str) -> Dict[str, Any]:
     return datos
 
 
-def cargar_historial_diario(ruta_json: str = "diario.json") -> list:
+def cargar_historial_diario(ruta_json: Path) -> list:
     """
     Carga el historial existente del diario.
     
@@ -855,7 +855,7 @@ def cargar_historial_diario(ruta_json: str = "diario.json") -> list:
         raise FileReadError(f"Error al leer {ruta_json}: {e}")
 
 
-def guardar_analisis(analisis: Dict[str, Any], ruta_json: str = "diario.json") -> None:
+def guardar_analisis(analisis: Dict[str, Any], ruta_json: Path) -> None:
     """
     Guarda el análisis en el archivo JSON del historial.
     
@@ -884,7 +884,7 @@ def guardar_analisis(analisis: Dict[str, Any], ruta_json: str = "diario.json") -
         raise FileReadError(f"Error al guardar el análisis: {e}")
 
 
-def guardar_chunks(chunks: List[Dict[str, Any]], ruta_json: str = "diario_chunks.json") -> None:
+def guardar_chunks(chunks: List[Dict[str, Any]], ruta_json: Path) -> None:
     """
     Guarda los chunks en un archivo JSON separado.
     
@@ -927,8 +927,8 @@ def guardar_chunks(chunks: List[Dict[str, Any]], ruta_json: str = "diario_chunks
 
 def analizar_diario_individual(
     ruta_archivo: Path,
-    ruta_salida: str = "diario.json",
-    ruta_chunks: str = "diario_chunks.json",
+    ruta_salida: Path,
+    ruta_chunks: Path,
     modelo: str = "liquidai/lfm2-2.6b-exp@f16",
     generar_chunks: bool = True
 ) -> Optional[Dict[str, Any]]:
@@ -1001,9 +1001,9 @@ def analizar_diario_individual(
 
 
 def procesar_carpeta_diarios(
-    carpeta: str = "diarios",
-    ruta_salida: str = "diario.json",
-    ruta_chunks: str = "diario_chunks.json",
+    carpeta: Path,
+    ruta_salida: Path,
+    ruta_chunks: Path,
     modelo: str = "liquidai/lfm2-2.6b-exp@f16",
     forzar_reprocesar: bool = False,
     generar_chunks: bool = True
@@ -1104,11 +1104,11 @@ def procesar_carpeta_diarios(
 
 if __name__ == "__main__":
     # Configuración
-    CARPETA_DIARIOS = "diarios"              # Carpeta con los archivos .md
-    ARCHIVO_SALIDA = "data/diario.json"           # Archivo JSON de análisis
-    ARCHIVO_CHUNKS = "data/diario_chunks.json"    # Archivo JSON de chunks
+    from backend.app.config import DIARY_ENTRIES_DIR as CARPETA_DIARIOS # == CARPETA_DIARIOS = "diarios"              # Carpeta con los archivos .md
+    from backend.app.config import RAW_DIARY_JSON as ARCHIVO_SALIDA # == ARCHIVO_SALIDA = "data/diario.json"  ## Archivo JSON de análisis
+    from backend.app.config import CHUNKS_FILE as ARCHIVO_CHUNKS # == ARCHIVO_CHUNKS = "data/diario_chunks.json" ## Archivo JSON de chunks
     MODELO_LLM = "qwen/qwen3-32b"
-    MODELO_LLM_local = "lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF" #"liquidai/lfm2-2.6b-exp@f16"
+    MODELO_LLM_local = "lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF" # Recomendaci'on
     FORZAR_REPROCESAR = False                # True para reprocesar todo
     GENERAR_CHUNKS = True                    # True para generar chunks semánticos
     

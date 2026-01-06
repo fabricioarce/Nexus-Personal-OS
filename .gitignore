@@ -1,33 +1,62 @@
+# =========================
 # Python
+# =========================
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+
+# Entornos virtuales
 .venv/
 venv/
 ENV/
 
-# Datos personales - IMPORTANTE
-diarios/
-*.md
+# =========================
+# Datos del diario (NO versionar)
+# =========================
+
+# Entradas crudas (markdown)
+data/diary/entries/
+
+# Datos procesados
+data/diary/processed/
+data/diary/processed/*.json
+data/diary/processed/*.faiss
+data/diary/processed/*.index
+
+# Datos raw históricos
+data/raw/
+data/raw/*.json
+
+# Archivos legacy (por si aún existen)
 diario.json
 diario_chunks.json
 diario_metadata.json
 
-# Futuros archivos (embeddings)
-diario_vectors.db
-diario_chunks_embedded.json
-*.index
+# =========================
+# Embeddings / índices vectoriales
+# =========================
 *.faiss
+*.index
+*.db
+*_embedded.json
+
+# =========================
+# Variables de entorno / secretos
+# =========================
 .env
 
-# IDE
+# =========================
+# IDE / Editor
+# =========================
 .vscode/
 .idea/
 *.swp
 *.swo
 
+# =========================
 # Sistema
+# =========================
 .DS_Store
 Thumbs.db

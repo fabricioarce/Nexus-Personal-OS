@@ -18,6 +18,8 @@ import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
 
+from pathlib import Path
+
 
 # ============================================================
 # CONFIGURACIÓN DE LOGGING
@@ -59,7 +61,7 @@ class DiarioVectorIndexer:
 
     # --------------------------------------------------------
 
-    def cargar_chunks(self, archivo_chunks: str) -> List[Dict[str, Any]]:
+    def cargar_chunks(self, archivo_chunks: Path) -> List[Dict[str, Any]]:
         logger.info(f"Cargando chunks desde: {archivo_chunks}")
         with open(archivo_chunks, "r", encoding="utf-8") as f:
             chunks = json.load(f)
@@ -92,16 +94,12 @@ class DiarioVectorIndexer:
 
     # --------------------------------------------------------
 
-    def guardar(
-        self,
-        ruta_index: str,
-        ruta_metadata: str
-    ) -> None:
+    def guardar(self, ruta_index: Path, ruta_metadata: Path) -> None:
         if self.index is None:
             raise RuntimeError("No hay índice para guardar")
 
         logger.info(f"Guardando índice FAISS en: {ruta_index}")
-        faiss.write_index(self.index, ruta_index)
+        faiss.write_index(self.index, str(ruta_index))
 
         logger.info(f"Guardando metadata en: {ruta_metadata}")
         with open(ruta_metadata, "w", encoding="utf-8") as f:
@@ -137,11 +135,13 @@ class DiarioVectorIndexer:
 
 if __name__ == "__main__":
     indexer = DiarioVectorIndexer()
+    
+    from backend.app.config import CHUNKS_FILE, FAISS_INDEX_FILE, METADATA_FILE
 
     indexer.indexar_desde_chunks(
-        archivo_chunks="data/diario_chunks.json",
-        ruta_index="data/diario_index.faiss",
-        ruta_metadata="data/diario_metadata.json"
+        CHUNKS_FILE, # == archivo_chunks="data/diario_chunks.json",
+        FAISS_INDEX_FILE, # == ruta_index="data/diario_index.faiss",
+        METADATA_FILE # == ruta_metadata="data/diario_metadata.json"
     )
 
     logger.info("✓ Indexación del diario completada con éxito")

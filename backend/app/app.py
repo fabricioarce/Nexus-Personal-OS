@@ -1,5 +1,5 @@
 import streamlit as st
-from rag_chat_engine import DiarioRAGChat
+from backend.app.core.rag_chat_engine_api import DiarioRAGChat
 
 st.set_page_config(page_title="Diario Reflexivo", layout="centered")
 
