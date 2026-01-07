@@ -98,5 +98,5 @@ def list_entries():
 def read_entry(date: str):
     path = DIARY_PATH / f"{date}.md"
     if not path.exists():
-        return {"error": "not found"}
+        return None
     return {"date": date, "text": path.read_text(encoding="utf-8")}

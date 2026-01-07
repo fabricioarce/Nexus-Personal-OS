@@ -1,26 +1,50 @@
 const API_URL = import.meta.env.PUBLIC_API_URL;
 
+async function handleResponse(res: Response) {
+  if (!res.ok) {
+    let errorMessage = `Error ${res.status}: ${res.statusText}`;
+    try {
+      const errorData = await res.json();
+      if (errorData && errorData.detail) {
+        errorMessage = errorData.detail;
+      }
+    } catch (e) {
+      // Ignorar errores al parsear JSON de error
+    }
+    throw new Error(errorMessage);
+  }
+  return res.json();
+}
+
 export async function sendMessageToChat(message: string) {
   const res = await fetch(`${API_URL}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ question: message }),
   });
-
-  if (!res.ok) {
-    throw new Error(`Error al comunicarse con el backend: ${res.statusText}`);
-  }
-
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function getStats() {
-  const res = await fetch(`${API_URL}/stats`);
-  
-  if (!res.ok) {
-    console.error("Error fetching stats:", res.statusText);
+  try {
+    const res = await fetch(`${API_URL}/stats`);
+    return await handleResponse(res);
+  } catch (error) {
+    console.error("Error fetching stats:", error);
     return null;
   }
-  
-  return res.json();
+}
+
+export async function getDiaryEntry(date: string) {
+  const res = await fetch(`${API_URL}/diary/${date}`);
+  return handleResponse(res);
+}
+
+export async function saveDiaryEntry(text: string) {
+  const res = await fetch(`${API_URL}/diary/save`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text }),
+  });
+  return handleResponse(res);
 }

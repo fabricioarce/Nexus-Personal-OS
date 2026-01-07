@@ -126,10 +126,11 @@ import { sendMessageToChat } from "../lib/api";
       addMessage("assistant", response.answer);
     } catch (error) {
       console.error(error);
-      addMessage(
-        "assistant",
-        "Lo siento, hubo un error al procesar tu mensaje.",
-      );
+      const errorMsg =
+        error instanceof Error
+          ? error.message
+          : "Hubo un error al procesar tu mensaje.";
+      addMessage("assistant", `⚠️ ${errorMsg}`);
     }
   }
 

@@ -2,13 +2,13 @@
 
 ## Backend (Alta prioridad)
 - [x] Agregar middleware CORS para frontend (Astro)
-- [ ] Manejo correcto de errores HTTP (404, 400, 500)
-- [ ] Validación de entradas (texto vacío, tamaño máximo)
+- [x] Manejo correcto de errores HTTP (404, 400, 500)
+- [x] Validación de entradas (texto vacío, tamaño máximo)
 - [x] Actualizar embeddings automáticamente al guardar una entrada
-- [ ] Centralizar configuración (paths, env vars)
+- [x] Centralizar configuración (paths, env vars)
 
 ## Backend (Media prioridad)
-- [ ] Implementar stats reales de emociones
+- [x] Implementar stats reales de emociones
 - [ ] Separar estado de chat por sesión (si se requiere)
 - [ ] Mejorar estructura de logs
 

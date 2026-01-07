@@ -76,6 +76,7 @@ const today = new Date().toLocaleDateString("es-ES", {
 </div>
 
 <script>
+  import { saveDiaryEntry } from "../lib/api";
   const textarea = document.getElementById(
     "diary-content",
   ) as HTMLTextAreaElement;
@@ -103,27 +104,18 @@ const today = new Date().toLocaleDateString("es-ES", {
     saveBtn.setAttribute("disabled", "true");
 
     try {
-      const response = await fetch("http://localhost:8000/api/diary/save", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text: content }),
-      });
-
-      if (response.ok) {
-        alert("¡Entrada guardada exitosamente!");
-        textarea.value = ""; // Clear textarea if desired, or keep it
-        // Reset counters
-        if (charCount) charCount.textContent = `0 caracteres`;
-        if (readTime) readTime.textContent = `0 min de lectura`;
-      } else {
-        const error = await response.json();
-        alert("Error al guardar: " + (error.detail || "Error desconocido"));
-      }
+      await saveDiaryEntry(content);
+      alert("¡Entrada guardada exitosamente!");
+      textarea.value = ""; // Clear textarea if desired, or keep it
+      // Reset counters
+      if (charCount) charCount.textContent = `0 caracteres`;
+      if (readTime) readTime.textContent = `0 min de lectura`;
     } catch (error) {
       console.error("Error saving entry:", error);
-      alert("Error de conexión con el servidor");
+      alert(
+        "Error al guardar: " +
+          (error instanceof Error ? error.message : "Error desconocido"),
+      );
     } finally {
       // Restore button state
       saveBtn.innerHTML = originalText;

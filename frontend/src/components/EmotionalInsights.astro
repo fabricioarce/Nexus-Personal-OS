@@ -67,18 +67,20 @@ const API_URL = import.meta.env.PUBLIC_API_URL;
   src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"
 ></script>
 
-<script is:inline>
+<script>
+  import { getStats } from "../lib/api";
+  declare var Chart: any;
+
   async function initDashboard() {
-    const container = document.getElementById("emotional-insights-container");
-    const apiUrl = container.dataset.apiUrl;
     const statsContainer = document.getElementById("stats-cards-container");
     const chartLoading = document.getElementById("chart-loading");
     const legendContainer = document.getElementById("dataset-legend");
 
+    if (!statsContainer || !chartLoading || !legendContainer) return;
+
     try {
-      const res = await fetch(`${apiUrl}/stats`);
-      if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json();
+      const data = await getStats();
+      if (!data) throw new Error("No se pudieron cargar las estadísticas");
 
       // 1. Render Stats Cards (Top 3 Emotions)
       statsContainer.innerHTML = "";
@@ -184,13 +186,13 @@ const API_URL = import.meta.env.PUBLIC_API_URL;
         },
       };
 
-      topEmotions.slice(0, 3).forEach((emotion) => {
-        const name = emotion.name.toLowerCase();
+      topEmotions.slice(0, 3).forEach((emotion: any) => {
+        const name = (emotion.name as string).toLowerCase();
         // Calculate percentage (count / total_entries)
         const percentage = Math.round((emotion.value / total) * 100);
 
         // Config styles
-        const config = emotionConfig[name] || emotionConfig["default"];
+        const config = (emotionConfig as any)[name] || emotionConfig["default"];
 
         // Construct HTML
         const cardHtml = `
@@ -215,12 +217,15 @@ const API_URL = import.meta.env.PUBLIC_API_URL;
 
       // 2. Render Chart
       const trends = data.weekly_trends;
-      const ctx = document.getElementById("emotion-chart").getContext("2d");
+      const chartElement = document.getElementById(
+        "emotion-chart",
+      ) as HTMLCanvasElement;
+      const ctx = chartElement?.getContext("2d");
 
-      if (trends && trends.datasets.length > 0) {
+      if (trends && trends.datasets.length > 0 && ctx) {
         // Setup Legend
         legendContainer.innerHTML = "";
-        trends.datasets.forEach((ds) => {
+        trends.datasets.forEach((ds: any) => {
           const item = `
              <div class="flex items-center gap-2">
                 <div class="w-3 h-3 rounded-full" style="background-color: ${ds.borderColor}"></div>
@@ -235,7 +240,7 @@ const API_URL = import.meta.env.PUBLIC_API_URL;
           type: "line",
           data: {
             labels: trends.dates,
-            datasets: trends.datasets.map((ds) => ({
+            datasets: trends.datasets.map((ds: any) => ({
               ...ds,
               tension: 0.4,
               pointRadius: 4,
@@ -253,7 +258,7 @@ const API_URL = import.meta.env.PUBLIC_API_URL;
                 titleColor: "#fafafa",
                 bodyColor: "#fafafa",
                 callbacks: {
-                  label: function (context) {
+                  label: function (context: any) {
                     return (
                       context.dataset.label + ": " + context.parsed.y + "%"
                     );
@@ -277,16 +282,17 @@ const API_URL = import.meta.env.PUBLIC_API_URL;
         });
       } else {
         // Empty state chart
-        const ctx = document.getElementById("emotion-chart");
-        ctx.parentNode.innerHTML =
-          '<div class="h-full flex items-center justify-center text-muted-foreground text-sm">No hay datos recientes para mostrar gráficas</div>';
+        const parent = chartElement?.parentElement;
+        if (parent) {
+          parent.innerHTML =
+            '<div class="h-full flex items-center justify-center text-muted-foreground text-sm">No hay datos recientes para mostrar gráficas</div>';
+        }
       }
 
       chartLoading.style.display = "none";
     } catch (e) {
       console.error("Dashboard error:", e);
-      statsContainer.innerHTML =
-        '<div class="text-red-400 text-sm">Error cargando datos</div>';
+      statsContainer.innerHTML = `<div class="text-red-400 text-sm">Error: ${e instanceof Error ? e.message : "Error cargando datos"}</div>`;
       chartLoading.style.display = "none";
     }
   }

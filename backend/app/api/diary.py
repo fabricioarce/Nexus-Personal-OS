@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from backend.app.services.diary_service import (
     save_entry,
@@ -24,4 +24,7 @@ def list_diary():
 
 @router.get("/{date}")
 def get_diary(date: str):
-    return read_entry(date)
+    entry = read_entry(date)
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    return entry

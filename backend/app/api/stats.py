@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import json
 from collections import Counter, defaultdict
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from backend.app.config import RAW_DIARY_JSON
 
 router = APIRouter()
@@ -153,6 +153,6 @@ def stats():
 
     except Exception as e:
         print(f"Error calculating stats: {e}")
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
 
     return stats_data
