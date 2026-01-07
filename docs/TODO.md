@@ -17,11 +17,12 @@
 - [ ] Persistencia del estado del chat
 
 ## Frontend
-- [ ] Crear layout base (mockup)
-- [ ] Editor de diario funcional
-- [ ] Chat conectado al backend
+- [x] Crear layout base (mockup)
+- [x] Editor de diario funcional
+- [ ] Escojer fecha de entrada
+- [x] Chat conectado al backend
 - [ ] Visualización de emociones
-- [ ] Búsqueda y filtros
+- [x] Búsqueda y filtros
 - [ ] Exportar entradas
 - [ ] Improve markdown rendering
 
