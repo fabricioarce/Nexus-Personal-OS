@@ -29,7 +29,7 @@
 
 ## 🎯 Descripción General
 
-**Diario Reflexivo con IA** es un sistema integral que transforma tus entradas de diario personal en una base de conocimiento semántica consultable. Utiliza modelos de lenguaje locales (LM Studio) para análisis, embeddings multilingües para búsqueda semántica, y RAG para conversaciones contextualizadas con tus propias reflexiones.
+**Diario Reflexivo con IA** es un sistema integral que transforma tus entradas de diario personal en una base de conocimiento semántica consultable. Utiliza modelos de lenguaje locales (LM Studio) para el análisis inicial, embeddings multilingües para búsqueda semántica, y **Groq API** con metadatos RAG para conversaciones contextualizadas y rápidas con tus propias reflexiones.
 
 ### ¿Qué hace este sistema?
 
@@ -79,7 +79,7 @@
 
 - **Conversaciones contextualizadas** con tu diario
 - **Prompt especializado** para reflexión personal
-- **Integración con LM Studio** (modelos 7B-14B locales)
+- **Integración con Groq API** (Llama 3, Mixtral) para respuestas ultrarrápidas
 - **Recuperación automática** de entradas relevantes
 - **Respuestas empáticas** basadas en tu historial
 
@@ -130,8 +130,8 @@
                      │
                      ▼
               ┌──────────────────────┐
-              │  rag_chat_engine.py  │ ← LM Studio (7B-14B)
-              │                      │   • RAG + Reflexión
+              │  rag_chat_engine.py  │ ← Groq API
+              │                      │   • RAG + Reflexión (Llama 3 / Mixtral)
               └──────┬───────────────┘
                      │
                      ▼
@@ -148,7 +148,7 @@
 | `diary_analyzer.py` | Análisis de texto y chunking | LM Studio (LLM 2.6B-7B) |
 | `embedding_generator.py` | Generación de embeddings | Sentence Transformers |
 | `query_engine.py` | Búsqueda semántica | FAISS + NumPy |
-| `rag_chat_engine.py` | Chatbot RAG | LM Studio + Requests |
+| `rag_chat_engine.py` | Chatbot RAG | Groq API + Requests |
 | `app.py` | Interfaz de usuario | Streamlit |
 
 ---
@@ -159,10 +159,10 @@
 
 - **Python 3.7+** ([Descargar](https://www.python.org/downloads/))
 - **LM Studio** ([Descargar](https://lmstudio.ai))
-  - Servidor local corriendo en `http://localhost:1234`
+  - Servidor local corriendo en `http://localhost:1234` (para análisis de diario)
   - Modelos recomendados:
     - Análisis: `liquidai/lfm2-2.6b-exp` o `Qwen2.5-7B-Instruct`
-    - Chat: `Qwen2.5-7B-Instruct` o `Llama-3.1-8B-Instruct`
+- **Groq API Key**: Necesaria para el Chatbot.
 
 ### Dependencias Python
 
@@ -241,14 +241,13 @@ pip install -r requirements.txt
 mkdir -p diarios data
 ```
 
-#### Paso 4: Configurar LM Studio
+#### Paso 4: Configurar Entorno
 
-1. Abrir LM Studio
-2. Descargar modelos:
-   - **Análisis**: `lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF`
-   - **Chat**: Mismo modelo o `Llama-3.1-8B-Instruct`
-3. Iniciar servidor local (pestaña "Server")
-4. Verificar que esté en `http://localhost:1234`
+1. Abrir LM Studio (para análisis)
+   - Iniciar servidor local en `http://localhost:1234`
+2. Configurar Groq (para chat)
+   - Crear archivo `.env` en `backend/`
+   - Agregar: `GROQ_API_KEY=gsk_tu_api_key_aqui`
 
 ---
 

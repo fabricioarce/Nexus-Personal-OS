@@ -24,6 +24,9 @@ import requests
 import time
 import random
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def post_with_retry(
     url: str,

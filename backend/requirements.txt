@@ -16,3 +16,5 @@ lmstudio==1.5.0
 # Utilities
 tqdm==4.67.1
 python-dotenv==1.2.1
+fastapi
+uvicorn

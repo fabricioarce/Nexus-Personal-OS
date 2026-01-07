@@ -3,7 +3,7 @@ import logging
 import os
 from dotenv import load_dotenv
 
-from query_engine import DiarioQueryEngine
+from backend.app.core.query_engine import DiarioQueryEngine
 
 # ============================================================
 # CONFIGURACIÓN GROQ
@@ -19,7 +19,7 @@ if not GROQ_API_KEY:
     raise RuntimeError("GROQ_API_KEY no está definida en el .env")
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-MODEL_NAME = "openai/gpt-oss-120b"  # ejemplo válido en Groq
+MODEL_NAME = "openai/gpt-oss-120b"  # Modelo Llama 3 en Groq
 
 # ============================================================
 # PROMPT DEL SISTEMA

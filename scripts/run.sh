@@ -78,5 +78,5 @@ read -p "> " opcion
 if [ "$opcion" == "1" ]; then
   streamlit run backend/app/ui/app.py
 else
-  python -m backend.app.core.rag_chat_engine
+  python -m backend.app.core.rag_chat_engine_api
 fi
