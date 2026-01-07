@@ -1,82 +1,133 @@
 #!/usr/bin/env bash
 set -e
 
-echo "=============================================="
-echo "📔 Diario IA — Pipeline completo"
-echo "=============================================="
+# Configuración de colores
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
 
-# -------------------------
-# Comprobaciones básicas
-# -------------------------
-if ! command -v python3 &> /dev/null; then
-  echo "❌ Python3 no está instalado"
-  exit 1
-fi
+echo -e "${BLUE}==============================================${NC}"
+echo -e "${GREEN}📔 Diario IA — Sistema de Gestión Inteligente${NC}"
+echo -e "${BLUE}==============================================${NC}"
 
-# -------------------------
-# Entorno virtual
-# -------------------------
-if [ ! -d ".venv" ]; then
-  echo "🔧 Creando entorno virtual..."
-  python3 -m venv .venv
-fi
+# 1. Comprobaciones de entorno
+check_dependencies() {
+    echo -e "${YELLOW}🔍 Comprobando dependencias...${NC}"
+    
+    # Python
+    if ! command -v python3 &> /dev/null; then
+        echo "❌ Python3 no encontrado."
+        exit 1
+    fi
 
-source .venv/bin/activate
+    # Entorno Virtual
+    if [ ! -d ".venv" ]; then
+        echo "🔧 Creando entorno virtual..."
+        python3 -m venv .venv
+    fi
+    source .venv/bin/activate
 
-# -------------------------
-# Dependencias
-# -------------------------
-if [ -f "requirements.txt" ]; then
-  echo "📦 Instalando dependencias..."
-  pip install --quiet -r requirements.txt
-fi
+    # Backend Deps
+    echo "📦 Verificando dependencias de Python..."
+    pip install -q -r backend/requirements.txt
 
-# -------------------------
-# Estructura mínima (alineada al backend)
-# -------------------------
-mkdir -p \
-  data/diary/entries \
-  data/diary/processed \
-  data/raw
+    # Frontend Deps (Astro)
+    if [ -d "frontend" ]; then
+        cd frontend
+        if command -v pnpm &> /dev/null; then
+            MANAGER="pnpm"
+        elif command -v npm &> /dev/null; then
+            MANAGER="npm"
+        else
+            echo "⚠️ No se encontró pnpm ni npm para el frontend."
+        fi
 
-# =========================
-# 1. Análisis del diario
-# =========================
+        if [ ! -z "$MANAGER" ]; then
+            if [ ! -d "node_modules" ]; then
+                echo "📦 Instalando dependencias de frontend con $MANAGER..."
+                $MANAGER install
+            fi
+        fi
+        cd ..
+    fi
+}
+
+# 2. Pipeline de Procesamiento
+run_pipeline() {
+    echo -e "\n${BLUE}🧠 Procesando entradas del diario...${NC}"
+    
+    mkdir -p data/diary/entries data/diary/processed data/raw
+    
+    echo "1/3 Analizando archivos..."
+    python3 -m backend.app.core.diary_analyzer
+    
+    echo "2/3 Generando embeddings..."
+    python3 -m backend.app.core.embedding_generator
+    
+    echo "3/3 Actualizando índice vectorial..."
+    python3 -m backend.app.core.query_engine --build-index
+    
+    echo -e "${GREEN}✅ Procesamiento completado.${NC}"
+}
+
+# 3. Lanzamiento de Servicios
+start_frontend() {
+    echo -e "\n${GREEN}🚀 Lanzando Frontend y Backend (API)${NC}"
+    
+    trap "kill 0" EXIT
+
+    # Backend Fastapi
+    python3 -m uvicorn backend.app.main:app --reload --port 8000 &
+    BACKEND_PID=$!
+
+    # Frontend Astro
+    cd frontend && $MANAGER run dev &
+    FRONTEND_PID=$!
+
+    wait
+}
+
+start_cli() {
+    echo -e "\n${GREEN}💬 Iniciando Chat en Terminal...${NC}"
+    python3 -m backend.app.core.rag_chat_engine_api
+}
+
+# --- Menú Principal ---
+check_dependencies
+
 echo ""
-echo "🧠 [1/4] Analizando entradas del diario..."
-python -m backend.app.core.diary_analyzer
+echo "Selecciona una opción:"
+echo "1) 🌐 Full Stack (Procesar + Frontend + Backend)"
+echo "2) 💻 CLI Mode (Procesar + Chat por terminal)"
+echo "3) 🔄 Solo Actualizar Datos (Para nuevas entradas manuales)"
+echo "4) 🛰️ Solo Lanzar Frontend (Sin procesar)"
+echo "5) 🗨️ Solo Lanzar CLI (Sin procesar)"
+echo "q) Salir"
+read -p "> " choice
 
-sleep 5
-
-# =========================
-# 2. Generación de embeddings
-# =========================
-echo ""
-echo "🧩 [2/4] Generando embeddings..."
-python -m backend.app.core.embedding_generator
-
-sleep 5
-
-# =========================
-# 3. Actualización FAISS
-# =========================
-echo ""
-echo "📦 [3/4] Actualizando índice vectorial..."
-python -m backend.app.core.query_engine --build-index
-
-# sleep 5
-
-# # =========================
-# # 4. Chat RAG
-# # =========================
-# echo ""
-# echo "¿Cómo quieres usar el sistema?"
-# echo "1) Interfaz gráfica"
-# echo "2) Chat por terminal"
-# read -p "> " opcion
-
-# if [ "$opcion" == "1" ]; then
-#   streamlit run backend/app/ui/app.py
-# else
-#   python -m backend.app.core.rag_chat_engine_api
-# fi
+case $choice in
+    1)
+        run_pipeline
+        start_frontend
+        ;;
+    2)
+        run_pipeline
+        start_cli
+        ;;
+    3)
+        run_pipeline
+        ;;
+    4)
+        start_frontend
+        ;;
+    5)
+        start_cli
+        ;;
+    q)
+        exit 0
+        ;;
+    *)
+        echo "Opción no válida."
+        ;;
+esac
