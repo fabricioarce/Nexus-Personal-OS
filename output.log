@@ -1,0 +1,15 @@
+2026-01-07 15:26:07,071 - INFO - Loading faiss with AVX2 support.
+2026-01-07 15:26:07,090 - INFO - Successfully loaded faiss with AVX2 support.
+2026-01-07 15:26:10,210 - INFO - Inicializando motor de consulta
+2026-01-07 15:26:10,210 - INFO - Cargando modelo de embeddings: intfloat/multilingual-e5-small
+2026-01-07 15:26:10,211 - INFO - Load pretrained SentenceTransformer: intfloat/multilingual-e5-small
+2026-01-07 15:26:14,873 - INFO - Cargando índice FAISS: /home/fabri/Documents/Diario/data/diary/processed/index.faiss
+2026-01-07 15:26:14,873 - INFO - Cargando metadata: /home/fabri/Documents/Diario/data/diary/processed/metadata.json
+2026-01-07 15:26:14,873 - INFO - Motor listo
+INFO:     Started server process [53552]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 98] error while attempting to bind on address ('127.0.0.1', 8000): [errno 98] address already in use
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+API key cargada: True

@@ -1,7 +1,7 @@
 # ✅ TODO – Pendientes Técnicos
 
 ## 🔴 Alta Prioridad (Infraestructura y Core)
-- [ ] **Migración a Base de Datos**: Mover los metadatos de las entradas (fechas, tags, emociones) de archivos JSON planos a SQLite para mejor rendimiento.
+- [x] **Migración a Base de Datos**: Mover los metadatos de las entradas (fechas, tags, emociones) de archivos JSON planos a SQLite para mejor rendimiento.
 - [ ] **Cifrado en Reposo**: Implementar cifrado para los archivos `.md` y la base de datos vectorial.
 - [ ] **Refactoreo de Servicios de IA**: Crear una clase base `LLMProvider` para intercambiar fácilmente entre Groq, LM Studio y OpenAI.
 - [ ] **Paginación en Frontend**: Manejar correctamente cientos de entradas en la lista de diarios sin degradar el rendimiento.
