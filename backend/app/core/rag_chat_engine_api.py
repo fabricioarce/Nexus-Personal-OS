@@ -133,24 +133,30 @@ Nivel de profundidad deseado: Medio."""
 class DiarioRAGChat:
     def __init__(self):
         self.engine = DiarioQueryEngine()
+        self.historial = []  # Memoria a corto plazo
 
     def construir_prompt(self, pregunta: str) -> list:
         resultados = self.engine.buscar(pregunta, k=5)
         contexto = self.engine.construir_contexto(resultados)
 
         mensajes = [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {
-                "role": "user",
-                "content": f"""
+            {"role": "system", "content": SYSTEM_PROMPT}
+        ]
+        
+        # Añadir historial de la sesión (los últimos 6 mensajes = 3 intercambios)
+        mensajes.extend(self.historial[-6:])
+
+        # Añadir pregunta actual con contexto RAG
+        mensajes.append({
+            "role": "user",
+            "content": f"""
 Contexto del diario personal:
 {contexto}
 
 Pregunta del usuario:
 {pregunta}
 """
-            }
-        ]
+        })
         return mensajes
 
     def preguntar(self, pregunta: str) -> str:
@@ -176,8 +182,13 @@ Pregunta del usuario:
 
         response.raise_for_status()
         data = response.json()
+        respuesta = data["choices"][0]["message"]["content"]
 
-        return data["choices"][0]["message"]["content"]
+        # Guardar en memoria para la próxima interacción
+        self.historial.append({"role": "user", "content": pregunta})
+        self.historial.append({"role": "assistant", "content": respuesta})
+
+        return respuesta
 
 
 if __name__ == "__main__":
