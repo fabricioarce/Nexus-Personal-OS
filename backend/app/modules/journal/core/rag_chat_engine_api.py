@@ -132,24 +132,50 @@ Nivel de profundidad deseado: Medio."""
 
 class DiarioRAGChat:
     def __init__(self):
+        from backend.app.modules.profile.service import ProfileService
+        from backend.app.core.database import get_session
         self.engine = DiarioQueryEngine()
         self.historial = []  # Memoria a corto plazo
+        self.profile = None
+        # Cargar perfil al iniciar
+        try:
+            session_gen = get_session()
+            session = next(session_gen)
+            self.profile = ProfileService.get_profile(session)
+        except Exception as e:
+            print(f"No se pudo cargar el perfil: {e}")
 
     def construir_prompt(self, pregunta: str) -> list:
         resultados = self.engine.buscar(pregunta, k=5)
         contexto = self.engine.construir_contexto(resultados)
 
+        # Construir contexto de perfil si existe
+        perfil_contexto = ""
+        if self.profile:
+            perfil_contexto = (
+                f"Perfil del usuario:\n"
+                f"Nombre: {self.profile.first_name or ''} {self.profile.last_name or ''}\n"
+                f"Edad: {self.profile.age or ''}\n"
+                f"Ciudad: {self.profile.city or ''}\n"
+                f"País: {self.profile.country or ''}\n"
+                f"Ocupación: {self.profile.occupation or ''}\n"
+                f"Educación: {self.profile.education_level or ''}\n"
+                f"Estado civil: {self.profile.marital_status or ''}\n"
+                f"Notas adicionales: {self.profile.additional_notes or ''}\n"
+            )
+
         mensajes = [
             {"role": "system", "content": SYSTEM_PROMPT}
         ]
-        
+
         # Añadir historial de la sesión (los últimos 6 mensajes = 3 intercambios)
         mensajes.extend(self.historial[-6:])
 
-        # Añadir pregunta actual con contexto RAG
+        # Añadir pregunta actual con contexto RAG y perfil
         mensajes.append({
             "role": "user",
             "content": f"""
+{perfil_contexto}
 Contexto del diario personal:
 {contexto}
 

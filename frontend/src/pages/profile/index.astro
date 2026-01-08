@@ -1,0 +1,563 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Sidebar from "../../components/Sidebar.astro";
+---
+
+<Layout title="Perfil Personal - MindJournal">
+    <div class="flex h-screen bg-background">
+        <Sidebar />
+        <main class="flex flex-1 flex-col gap-6 p-6 overflow-y-auto">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-foreground">
+                        Perfil Personal
+                    </h1>
+                    <p class="text-muted-foreground mt-1">
+                        Gestiona tu información personal para análisis
+                        psicológico
+                    </p>
+                </div>
+            </div>
+
+            <!-- Profile Form -->
+            <div class="bg-card rounded-xl border border-border p-6 max-w-4xl">
+                <form id="profile-form" class="space-y-8">
+                    <!-- Basic Information Section -->
+                    <div class="space-y-4">
+                        <h2
+                            class="text-xl font-semibold text-foreground flex items-center gap-2"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="text-primary"
+                            >
+                                <path
+                                    d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+                                ></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            Información Básica
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label
+                                    for="first_name"
+                                    class="text-sm font-medium text-foreground"
+                                    >Nombre</label
+                                >
+                                <input
+                                    type="text"
+                                    id="first_name"
+                                    name="first_name"
+                                    placeholder="Tu nombre"
+                                    class="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+                                />
+                            </div>
+                            <div class="space-y-2">
+                                <label
+                                    for="last_name"
+                                    class="text-sm font-medium text-foreground"
+                                    >Apellido</label
+                                >
+                                <input
+                                    type="text"
+                                    id="last_name"
+                                    name="last_name"
+                                    placeholder="Tu apellido"
+                                    class="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+                                />
+                            </div>
+                            <div class="space-y-2">
+                                <label
+                                    for="birth_year"
+                                    class="text-sm font-medium text-foreground"
+                                    >Año de Nacimiento</label
+                                >
+                                <input
+                                    type="number"
+                                    id="birth_year"
+                                    name="birth_year"
+                                    placeholder="1990"
+                                    min="1900"
+                                    max="2024"
+                                    class="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+                                />
+                            </div>
+                            <div class="space-y-2">
+                                <label
+                                    class="text-sm font-medium text-muted-foreground"
+                                    >Edad</label
+                                >
+                                <div
+                                    id="age-display"
+                                    class="w-full px-3 py-2 bg-muted border border-input rounded-lg text-foreground"
+                                >
+                                    -
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location Section -->
+                    <div class="space-y-4">
+                        <h2
+                            class="text-xl font-semibold text-foreground flex items-center gap-2"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="text-primary"
+                            >
+                                <path
+                                    d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"
+                                ></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            Ubicación
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="space-y-2">
+                                <label
+                                    for="city"
+                                    class="text-sm font-medium text-foreground"
+                                    >Ciudad</label
+                                >
+                                <input
+                                    type="text"
+                                    id="city"
+                                    name="city"
+                                    placeholder="Ciudad"
+                                    class="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+                                />
+                            </div>
+                            <div class="space-y-2">
+                                <label
+                                    for="country"
+                                    class="text-sm font-medium text-foreground"
+                                    >País</label
+                                >
+                                <input
+                                    type="text"
+                                    id="country"
+                                    name="country"
+                                    placeholder="País"
+                                    class="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+                                />
+                            </div>
+                            <div class="space-y-2">
+                                <label
+                                    for="timezone"
+                                    class="text-sm font-medium text-foreground"
+                                    >Zona Horaria</label
+                                >
+                                <input
+                                    type="text"
+                                    id="timezone"
+                                    name="timezone"
+                                    placeholder="America/Mexico_City"
+                                    class="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Physical Data Section -->
+                    <div class="space-y-4">
+                        <h2
+                            class="text-xl font-semibold text-foreground flex items-center gap-2"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="text-primary"
+                            >
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 16v-4"></path>
+                                <path d="M12 8h.01"></path>
+                            </svg>
+                            Datos Físicos
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label
+                                    for="height_cm"
+                                    class="text-sm font-medium text-foreground"
+                                    >Estatura (cm)</label
+                                >
+                                <input
+                                    type="number"
+                                    id="height_cm"
+                                    name="height_cm"
+                                    placeholder="170"
+                                    min="50"
+                                    max="250"
+                                    class="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+                                />
+                            </div>
+                            <div class="space-y-2">
+                                <label
+                                    for="weight_kg"
+                                    class="text-sm font-medium text-foreground"
+                                    >Peso (kg) - Opcional</label
+                                >
+                                <input
+                                    type="number"
+                                    id="weight_kg"
+                                    name="weight_kg"
+                                    placeholder="70"
+                                    min="20"
+                                    max="300"
+                                    step="0.1"
+                                    class="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Information Section -->
+                    <div class="space-y-4">
+                        <h2
+                            class="text-xl font-semibold text-foreground flex items-center gap-2"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="text-primary"
+                            >
+                                <path d="M12 20h9"></path>
+                                <path
+                                    d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+                                ></path>
+                            </svg>
+                            Información Adicional
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="space-y-2">
+                                <label
+                                    for="occupation"
+                                    class="text-sm font-medium text-foreground"
+                                    >Ocupación</label
+                                >
+                                <input
+                                    type="text"
+                                    id="occupation"
+                                    name="occupation"
+                                    placeholder="Estudiante, Desarrollador, etc."
+                                    class="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+                                />
+                            </div>
+                            <div class="space-y-2">
+                                <label
+                                    for="education_level"
+                                    class="text-sm font-medium text-foreground"
+                                    >Nivel Educativo</label
+                                >
+                                <input
+                                    type="text"
+                                    id="education_level"
+                                    name="education_level"
+                                    placeholder="Universitario, Posgrado, etc."
+                                    class="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+                                />
+                            </div>
+                            <div class="space-y-2">
+                                <label
+                                    for="marital_status"
+                                    class="text-sm font-medium text-foreground"
+                                    >Estado Civil</label
+                                >
+                                <input
+                                    type="text"
+                                    id="marital_status"
+                                    name="marital_status"
+                                    placeholder="Soltero, Casado, etc."
+                                    class="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
+                                />
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label
+                                for="additional_notes"
+                                class="text-sm font-medium text-foreground"
+                                >Notas Adicionales</label
+                            >
+                            <textarea
+                                id="additional_notes"
+                                name="additional_notes"
+                                placeholder="Información adicional que un psicólogo debería conocer..."
+                                rows="4"
+                                class="w-full px-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground resize-none"
+                            ></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3 pt-4">
+                        <button
+                            type="submit"
+                            class="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
+                        >
+                            Guardar Cambios
+                        </button>
+                        <button
+                            type="button"
+                            id="reset-btn"
+                            class="px-6 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors font-medium"
+                        >
+                            Resetear
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Loading/Success/Error Messages -->
+                <div id="message-container" class="mt-4 hidden">
+                    <div id="message" class="p-4 rounded-lg"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</Layout>
+
+<script>
+    const API_URL = "http://localhost:8000/api/profile/";
+
+    // Form elements
+    const form = document.getElementById("profile-form") as HTMLFormElement;
+    const resetBtn = document.getElementById("reset-btn");
+    const birthYearInput = document.getElementById(
+        "birth_year",
+    ) as HTMLInputElement;
+    const ageDisplay = document.getElementById("age-display");
+    const messageContainer = document.getElementById("message-container");
+    const messageDiv = document.getElementById("message");
+
+    // Calculate and display age
+    function calculateAge(birthYear: number): number {
+        const currentYear = new Date().getFullYear();
+        return currentYear - birthYear;
+    }
+
+    birthYearInput?.addEventListener("input", () => {
+        const birthYear = parseInt(birthYearInput.value);
+        if (
+            birthYear &&
+            birthYear > 1900 &&
+            birthYear <= new Date().getFullYear()
+        ) {
+            const age = calculateAge(birthYear);
+            if (ageDisplay) {
+                ageDisplay.textContent = `${age} años`;
+            }
+        } else {
+            if (ageDisplay) {
+                ageDisplay.textContent = "-";
+            }
+        }
+    });
+
+    // Show message
+    function showMessage(text: string, type: "success" | "error" | "info") {
+        if (!messageContainer || !messageDiv) return;
+
+        messageContainer.classList.remove("hidden");
+        messageDiv.textContent = text;
+
+        messageDiv.className = "p-4 rounded-lg";
+        if (type === "success") {
+            messageDiv.classList.add(
+                "bg-green-500/10",
+                "text-green-500",
+                "border",
+                "border-green-500",
+            );
+        } else if (type === "error") {
+            messageDiv.classList.add(
+                "bg-destructive/10",
+                "text-destructive",
+                "border",
+                "border-destructive",
+            );
+        } else {
+            messageDiv.classList.add(
+                "bg-blue-500/10",
+                "text-blue-500",
+                "border",
+                "border-blue-500",
+            );
+        }
+
+        setTimeout(() => {
+            messageContainer.classList.add("hidden");
+        }, 5000);
+    }
+
+    // Load profile data
+    async function loadProfile() {
+        try {
+            const response = await fetch(API_URL);
+
+            if (response.status === 404) {
+                // No profile exists yet
+                showMessage(
+                    "No se encontró un perfil. Crea uno nuevo rellenando el formulario.",
+                    "info",
+                );
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error("Error al cargar el perfil");
+            }
+
+            const data = await response.json();
+
+            // Populate form fields
+            Object.keys(data).forEach((key) => {
+                const input = document.getElementById(key) as
+                    | HTMLInputElement
+                    | HTMLTextAreaElement;
+                if (input && data[key] !== null) {
+                    input.value = data[key];
+                }
+            });
+
+            // Update age display
+            if (data.birth_year) {
+                const age = calculateAge(data.birth_year);
+                if (ageDisplay) {
+                    ageDisplay.textContent = `${age} años`;
+                }
+            }
+
+            showMessage("Perfil cargado correctamente", "success");
+        } catch (error) {
+            console.error("Error loading profile:", error);
+            showMessage("Error al cargar el perfil", "error");
+        }
+    }
+
+    // Save profile
+    async function saveProfile(formData: any) {
+        try {
+            // Try to update first
+            let response = await fetch(API_URL, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
+
+            // If profile doesn't exist, create it
+            if (response.status === 404) {
+                response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(formData),
+                });
+            }
+
+            if (!response.ok) {
+                throw new Error("Error al guardar el perfil");
+            }
+
+            const data = await response.json();
+            showMessage("Perfil guardado correctamente", "success");
+
+            // Update age display
+            if (data.age && ageDisplay) {
+                ageDisplay.textContent = `${data.age} años`;
+            }
+        } catch (error) {
+            console.error("Error saving profile:", error);
+            showMessage("Error al guardar el perfil", "error");
+        }
+    }
+
+    // Handle form submission
+    form?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const data: any = {};
+
+        formData.forEach((value, key) => {
+            if (value !== "") {
+                if (key === "birth_year" || key === "height_cm") {
+                    data[key] = parseInt(value as string);
+                } else if (key === "weight_kg") {
+                    data[key] = parseFloat(value as string);
+                } else {
+                    data[key] = value;
+                }
+            }
+        });
+
+        await saveProfile(data);
+    });
+
+    // Handle reset
+    resetBtn?.addEventListener("click", () => {
+        form?.reset();
+        if (ageDisplay) {
+            ageDisplay.textContent = "-";
+        }
+        loadProfile();
+    });
+
+    // Load profile on page load
+    loadProfile();
+</script>
+
+<style>
+    /* Custom scrollbar for textarea */
+    textarea::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    textarea::-webkit-scrollbar-track {
+        background: var(--muted);
+        border-radius: 4px;
+    }
+
+    textarea::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 4px;
+    }
+
+    textarea::-webkit-scrollbar-thumb:hover {
+        background: var(--ring);
+    }
+</style>

@@ -5,6 +5,7 @@ import os
 from backend.app.modules.journal.api import diary, chat, stats
 from backend.app.modules.eisenhower import router as eisenhower
 from backend.app.modules.retroplanning import router as retroplanning
+from backend.app.modules.profile import router as profile
 from backend.app.core.exceptions import global_exception_handler
 
 app = FastAPI(title="Nexus Personal OS API")
@@ -16,6 +17,7 @@ def on_startup():
     from backend.app.modules.journal import models as journal_models
     from backend.app.modules.eisenhower import models as eisenhower_models
     from backend.app.modules.retroplanning import models as retro_models
+    from backend.app.modules.profile import models as profile_models
     init_db()
 
 app.add_exception_handler(Exception, global_exception_handler)
@@ -25,6 +27,7 @@ app.include_router(chat.router, prefix="/api/journal/chat")
 app.include_router(stats.router, prefix="/api/journal/stats")
 app.include_router(eisenhower.router, prefix="/api/eisenhower")
 app.include_router(retroplanning.router, prefix="/api/retroplanning")
+app.include_router(profile.router, prefix="/api/profile")
 
 app.add_middleware(
     CORSMiddleware,

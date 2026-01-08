@@ -1,24 +1,29 @@
+
 from datetime import datetime, date
 from typing import List, Optional
 from sqlmodel import Field, Relationship, SQLModel
 
-class RetroProjectBase(SQLModel):
+# --- Work Backwards Escolar/Universitario ---
+class SchoolProjectBase(SQLModel):
     title: str
-    description: Optional[str] = None
+    vision: str  # Visión del proyecto
+    press_release: str  # Press Release simulado
+    faqs: List[str] = []  # Preguntas frecuentes
+    roadmap: Optional[str] = None  # Roadmap general
     final_deadline: date
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-class RetroProject(RetroProjectBase, table=True):
+class SchoolProject(SchoolProjectBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    tasks: List["RetroTask"] = Relationship(back_populates="project", cascade_delete=True)
+    tasks: List["SchoolTask"] = Relationship(back_populates="project", cascade_delete=True)
 
-class RetroProjectCreate(RetroProjectBase):
+class SchoolProjectCreate(SchoolProjectBase):
     pass
 
-class RetroProjectRead(RetroProjectBase):
+class SchoolProjectRead(SchoolProjectBase):
     id: int
 
-class RetroTaskBase(SQLModel):
+class SchoolTaskBase(SQLModel):
     title: str
     description: Optional[str] = None
     responsible: Optional[str] = "Tú"
@@ -26,19 +31,19 @@ class RetroTaskBase(SQLModel):
     internal_deadline: date
     status: str = "pending" # pending, in_progress, completed
 
-class RetroTask(RetroTaskBase, table=True):
+class SchoolTask(SchoolTaskBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    project_id: int = Field(foreign_key="retroproject.id")
-    project: RetroProject = Relationship(back_populates="tasks")
+    project_id: int = Field(foreign_key="schoolproject.id")
+    project: SchoolProject = Relationship(back_populates="tasks")
 
-class RetroTaskCreate(RetroTaskBase):
+class SchoolTaskCreate(SchoolTaskBase):
     project_id: int
 
-class RetroTaskRead(RetroTaskBase):
+class SchoolTaskRead(SchoolTaskBase):
     id: int
     project_id: int
 
-class RetroTaskUpdate(SQLModel):
+class SchoolTaskUpdate(SQLModel):
     title: Optional[str] = None
     description: Optional[str] = None
     responsible: Optional[str] = None
@@ -46,5 +51,5 @@ class RetroTaskUpdate(SQLModel):
     internal_deadline: Optional[date] = None
     status: Optional[str] = None
 
-class RetroProjectWithTasks(RetroProjectRead):
-    tasks: List[RetroTaskRead] = []
+class SchoolProjectWithTasks(SchoolProjectRead):
+    tasks: List[SchoolTaskRead] = []

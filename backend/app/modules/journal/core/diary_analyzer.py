@@ -26,6 +26,8 @@ import random
 from sqlmodel import Session, select
 from backend.app.core.database import engine
 from backend.app.modules.journal.models import JournalEntry, EntryAnalysis, EntryChunk
+from backend.app.modules.profile.models import UserProfile
+from backend.app.modules.profile.service import ProfileService
 import time
 from dotenv import load_dotenv
 
@@ -510,13 +512,28 @@ def analizar_con_llm(contenido: str, modelo: str = "qwen/qwen3-32b") -> str:
     Raises:
         ModelError: Si hay problemas con el modelo o la conexión
     """
+    # Obtener contexto del perfil si está disponible
+    profile_context = get_profile_context()
+    profile_section = ""
+    if profile_context:
+        profile_section = f"""
+    CONTEXTO DEL USUARIO:
+    Considera la siguiente información del usuario para un análisis más personalizado:
+    {profile_context}
+    
+    Esta información puede ayudarte a contextualizar mejor las emociones, situaciones y 
+    referencias en el texto, pero NO debes mencionarla explícitamente en tu análisis. 
+    Úsala solo para mejorar la comprensión del contexto personal.
+    
+    """
+    
     prompt = f"""
     INSTRUCCIONES:
     Tu tarea es analizar texto de diario personal y extraer información estructurada.
     No hagas juicios, no des consejos, no interpretes más allá del texto.
     No inventes información que no esté explícita o claramente inferida.
     Si algo no está presente, devuélvelo como null.
-    
+    {profile_section}
     SALIDA:
     Devuelve exclusivamente un objeto JSON válido con las siguientes claves:
         summary: resumen neutral en máximo 3 líneas
@@ -586,8 +603,20 @@ def chunkear_con_llm(
             "text": string
         }
     """
+    # Obtener contexto del perfil si está disponible
+    profile_context = get_profile_context()
+    profile_note = ""
+    if profile_context:
+        profile_note = f"""
+
+CONTEXTO DEL USUARIO (para mejor comprensión):
+{profile_context}
+
+Usa esta información solo para contextualizar mejor el contenido, NO la menciones en los chunks.
+"""
+    
     prompt = f"""
-Eres un modelo de lenguaje encargado de procesar entradas de un diario personal.
+Eres un modelo de lenguaje encargado de procesar entradas de un diario personal.{profile_note}
 
 Tu tarea es:
 1. Dividir TODO el texto en CHUNKS SEMÁNTICOS.
@@ -723,6 +752,61 @@ EMOTIONS_WHITELIST = {
     "alegría", "tristeza", "miedo", "enojo",
     "ansiedad", "frustración", "calma", "confusión"
 }
+
+def get_profile_context() -> str:
+    """
+    Obtiene el contexto del perfil del usuario para enriquecer el análisis de IA.
+    
+    Returns:
+        String con información del perfil formateada para el prompt,
+        o string vacío si no hay perfil.
+    """
+    try:
+        with Session(engine) as session:
+            profile = ProfileService.get_profile(session)
+            
+            if not profile:
+                return ""
+            
+            context_parts = []
+            
+            # Información demográfica básica
+            if profile.age:
+                context_parts.append(f"Edad: {profile.age} años")
+            
+            if profile.first_name or profile.last_name:
+                nombre_completo = f"{profile.first_name or ''} {profile.last_name or ''}".strip()
+                if nombre_completo:
+                    context_parts.append(f"Nombre: {nombre_completo}")
+            
+            # Ubicación
+            if profile.city or profile.country:
+                ubicacion = f"{profile.city or ''}, {profile.country or ''}".strip(', ')
+                if ubicacion:
+                    context_parts.append(f"Ubicación: {ubicacion}")
+            
+            # Ocupación y educación
+            if profile.occupation:
+                context_parts.append(f"Ocupación: {profile.occupation}")
+            
+            if profile.education_level:
+                context_parts.append(f"Nivel educativo: {profile.education_level}")
+            
+            if profile.marital_status:
+                context_parts.append(f"Estado civil: {profile.marital_status}")
+            
+            # Notas adicionales importantes para el psicólogo
+            if profile.additional_notes:
+                context_parts.append(f"\nInformación adicional relevante:\n{profile.additional_notes}")
+            
+            if not context_parts:
+                return ""
+            
+            return "\n".join(context_parts)
+            
+    except Exception as e:
+        logger.warning(f"No se pudo cargar el contexto del perfil: {e}")
+        return ""
 
 def sanitizar_chunk(chunk: Dict[str, Any], texto_chunk: str) -> Dict[str, Any]:
     clean = dict(chunk)
