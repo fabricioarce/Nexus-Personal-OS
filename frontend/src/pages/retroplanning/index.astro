@@ -5,6 +5,7 @@ import Sidebar from "../../components/Sidebar.astro";
 
 <Layout title="Working Backwards - Proyectos">
     <div class="flex h-screen bg-background text-foreground overflow-hidden">
+        <Sidebar />
 
         <main class="flex-1 flex flex-col overflow-hidden">
             <!-- Header -->
@@ -48,125 +49,82 @@ import Sidebar from "../../components/Sidebar.astro";
         <!-- New Project Modal -->
         <div
             id="project-modal"
----
----
+            class="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300"
+        >
+            <div
+                class="bg-card border border-border rounded-3xl p-8 w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300"
+            >
+                <div class="flex justify-between items-start mb-6">
+                    <h3 class="text-2xl font-bold">Nuevo Proyecto</h3>
+                    <button
+                        id="close-modal"
+                        class="p-2 hover:bg-accent rounded-full transition-colors"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            ><line x1="18" x2="6" y1="6" y2="18"></line><line
+                                x1="6"
+                                x2="18"
+                                y1="6"
+                                y2="18"></line></svg
+                        >
+                    </button>
+                </div>
 
-<html lang="es">
-    <head>
-        <title>Retroplanning Escolar/Universitario</title>
-    </head>
-    <body class="bg-gray-50 min-h-screen">
-        <main class="max-w-3xl mx-auto py-8">
-            <h1 class="text-3xl font-bold mb-6">Retroplanning Escolar/Universitario</h1>
-            <section class="mb-8 p-6 bg-white rounded-lg shadow">
-                <h2 class="text-xl font-semibold mb-4">Nuevo Proyecto</h2>
                 <form id="project-form" class="space-y-4">
-                    <input type="text" name="title" placeholder="Título del proyecto" class="w-full p-2 border rounded" required />
-                    <textarea name="vision" placeholder="Visión del proyecto (¿qué quieres lograr?)" class="w-full p-2 border rounded" required></textarea>
-                    <textarea name="press_release" placeholder="Press Release simulado (describe el éxito del proyecto)" class="w-full p-2 border rounded" required></textarea>
-                    <textarea name="faqs" placeholder="Preguntas frecuentes (separadas por salto de línea)" class="w-full p-2 border rounded"></textarea>
-                    <textarea name="roadmap" placeholder="Roadmap general (hitos principales)" class="w-full p-2 border rounded"></textarea>
-                    <label class="block">Fecha límite final:<input type="date" name="final_deadline" class="p-2 border rounded" required /></label>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Crear Proyecto</button>
+                    <div>
+                        <label class="text-sm text-muted-foreground block mb-1"
+                            >Título del Objetivo</label
+                        >
+                        <input
+                            type="text"
+                            id="project-title"
+                            required
+                            placeholder="Ej. Lanzamiento de mi Página Web"
+                            class="w-full bg-background border border-border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                        />
+                    </div>
+                    <div>
+                        <label class="text-sm text-muted-foreground block mb-1"
+                            >Fecha Límite Final</label
+                        >
+                        <input
+                            type="date"
+                            id="project-deadline"
+                            required
+                            class="w-full bg-background border border-border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                        />
+                    </div>
+                    <div>
+                        <label class="text-sm text-muted-foreground block mb-1"
+                            >Descripción (Opcional)</label
+                        >
+                        <textarea
+                            id="project-desc"
+                            rows="3"
+                            placeholder="¿Qué quieres lograr exactamente?"
+                            class="w-full bg-background border border-border rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none"
+                        ></textarea>
+                    </div>
+                    <button
+                        type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98]"
+                    >
+                        Crear Proyecto
+                    </button>
                 </form>
-            </section>
-            <section class="mb-8 p-6 bg-white rounded-lg shadow">
-                <h2 class="text-xl font-semibold mb-4">Proyectos existentes</h2>
-                <div id="projects-list"></div>
-            </section>
-            <section id="tasks-section" class="p-6 bg-white rounded-lg shadow hidden">
-                <h2 class="text-xl font-semibold mb-4">Tareas del Proyecto</h2>
-                <form id="task-form" class="space-y-4 mb-4">
-                    <input type="text" name="title" placeholder="Título de la tarea" class="w-full p-2 border rounded" required />
-                    <textarea name="description" placeholder="Descripción de la tarea" class="w-full p-2 border rounded"></textarea>
-                    <input type="text" name="responsible" placeholder="Responsable" class="w-full p-2 border rounded" />
-                    <input type="number" name="duration_days" placeholder="Duración (días)" class="w-full p-2 border rounded" min="1" />
-                    <label class="block">Fecha límite interna:<input type="date" name="internal_deadline" class="p-2 border rounded" required /></label>
-                    <select name="status" class="w-full p-2 border rounded">
-                        <option value="pending">Pendiente</option>
-                        <option value="in_progress">En progreso</option>
-                        <option value="completed">Completada</option>
-                    </select>
-                    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Agregar Tarea</button>
-                </form>
-                <div id="tasks-list"></div>
-            </section>
-        </main>
-        <script type="module">
-            const API = 'http://localhost:8000/api/retroplanning';
-            const projectForm = document.getElementById('project-form');
-            const projectsList = document.getElementById('projects-list');
-            const tasksSection = document.getElementById('tasks-section');
-            const taskForm = document.getElementById('task-form');
-            const tasksList = document.getElementById('tasks-list');
-            let currentProjectId = null;
-
-            async function fetchProjects() {
-                const res = await fetch(`${API}/projects`);
-                const projects = await res.json();
-                projectsList.innerHTML = '';
-                projects.forEach(p => {
-                    const div = document.createElement('div');
-                    div.className = 'border p-4 mb-2 rounded cursor-pointer hover:bg-blue-50';
-                    div.innerHTML = `<strong>${p.title}</strong><br>Visión: ${p.vision}<br>Deadline: ${p.final_deadline}`;
-                    div.onclick = () => loadProject(p.id);
-                    projectsList.appendChild(div);
-                });
-            }
-
-            async function loadProject(id) {
-                const res = await fetch(`${API}/projects/${id}`);
-                const project = await res.json();
-                currentProjectId = id;
-                tasksSection.classList.remove('hidden');
-                renderTasks(project.tasks);
-            }
-
-            function renderTasks(tasks) {
-                tasksList.innerHTML = '';
-                tasks.forEach(t => {
-                    const div = document.createElement('div');
-                    div.className = 'border p-2 mb-2 rounded';
-                    div.innerHTML = `<strong>${t.title}</strong> (${t.status})<br>${t.description || ''}<br>Responsable: ${t.responsible || 'Tú'}<br>Deadline: ${t.internal_deadline}`;
-                    tasksList.appendChild(div);
-                });
-            }
-
-            projectForm.onsubmit = async e => {
-                e.preventDefault();
-                const data = Object.fromEntries(new FormData(projectForm));
-                data.faqs = data.faqs ? data.faqs.split('\n') : [];
-                const res = await fetch(`${API}/projects`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) {
-                    projectForm.reset();
-                    fetchProjects();
-                }
-            };
-
-            taskForm.onsubmit = async e => {
-                e.preventDefault();
-                if (!currentProjectId) return;
-                const data = Object.fromEntries(new FormData(taskForm));
-                data.project_id = currentProjectId;
-                const res = await fetch(`${API}/projects/${currentProjectId}/tasks`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) {
-                    taskForm.reset();
-                    loadProject(currentProjectId);
-                }
-            };
-
-            fetchProjects();
-        </script>
-    </body>
-</html>
+            </div>
+        </div>
+    </div>
+</Layout>
 
 <script>
     let projects = [];
