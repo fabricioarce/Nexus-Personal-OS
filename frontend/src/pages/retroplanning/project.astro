@@ -1,0 +1,346 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Sidebar from "../../components/Sidebar.astro";
+---
+
+<Layout title="Retroplanning - Detalle del Proyecto">
+    <div class="flex h-screen bg-background text-foreground overflow-hidden">
+        <Sidebar />
+
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header
+                class="h-16 border-b border-border flex items-center justify-between px-8 bg-card/50 backdrop-blur-md"
+            >
+                <div class="flex items-center gap-4">
+                    <a
+                        href="/retroplanning"
+                        class="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            ><line x1="19" y1="12" x2="5" y2="12"
+                            ></line><polyline points="12 19 5 12 12 5"
+                            ></polyline></svg
+                        >
+                    </a>
+                    <h1 id="project-title-header" class="text-xl font-semibold">
+                        Cargando...
+                    </h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span
+                        id="final-deadline-badge"
+                        class="px-3 py-1 bg-red-500/10 text-red-500 border border-red-500/20 rounded-full text-xs font-bold"
+                    ></span>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-8">
+                <div class="max-w-4xl mx-auto space-y-8">
+                    <!-- New Task Form -->
+                    <section
+                        class="bg-card border border-border rounded-2xl p-6 shadow-sm"
+                    >
+                        <h2
+                            class="text-lg font-medium mb-4 flex items-center gap-2"
+                        >
+                            <span class="w-2 h-6 bg-blue-500 rounded-full"
+                            ></span>
+                            Agregar Tarea (Trabajando hacia atrás)
+                        </h2>
+                        <form
+                            id="task-form"
+                            class="grid grid-cols-1 md:grid-cols-4 gap-4"
+                        >
+                            <div class="md:col-span-2">
+                                <label
+                                    class="text-sm text-muted-foreground block mb-1"
+                                    >Tarea</label
+                                >
+                                <input
+                                    id="task-title"
+                                    required
+                                    type="text"
+                                    placeholder="Ej. Pruebas de funcionalidad"
+                                    class="w-full bg-background border border-border rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    class="text-sm text-muted-foreground block mb-1"
+                                    >Días Ocupa</label
+                                >
+                                <input
+                                    id="task-duration"
+                                    type="number"
+                                    value="1"
+                                    min="1"
+                                    class="w-full bg-background border border-border rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                />
+                            </div>
+                            <div class="flex items-end">
+                                <button
+                                    type="submit"
+                                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-xl transition-all active:scale-95 shadow-lg shadow-blue-500/20"
+                                >
+                                    Añadir
+                                </button>
+                            </div>
+                        </form>
+                        <p class="text-xs text-muted-foreground mt-2 italic">
+                            * La fecha límite interna se calculará
+                            automáticamente basada en la anterior.
+                        </p>
+                    </section>
+
+                    <!-- Timeline -->
+                    <div id="timeline-container" class="relative">
+                        <!-- Vertical Line -->
+                        <div
+                            class="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500/50 via-blue-500/10 to-transparent"
+                        >
+                        </div>
+
+                        <!-- Tasks List -->
+                        <div id="tasks-list" class="space-y-6">
+                            <!-- Tasks will be injected here -->
+                        </div>
+
+                        <!-- Final Goal -->
+                        <div class="relative z-10 flex items-center gap-4">
+                            <div
+                                class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/30"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    ><circle cx="12" cy="12" r="10"
+                                    ></circle><path d="m16 10-4 4-4-4"
+                                    ></path></svg
+                                >
+                            </div>
+                            <div
+                                class="bg-card border-2 border-blue-600/50 p-6 rounded-3xl flex-1 shadow-xl"
+                            >
+                                <span
+                                    class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 mb-1 block"
+                                    >Objetivo Final (D-Day)</span
+                                >
+                                <h3
+                                    id="project-title-anchor"
+                                    class="text-xl font-black"
+                                >
+                                    Cargando Objetivo...
+                                </h3>
+                                <p
+                                    id="project-deadline-anchor"
+                                    class="text-sm font-medium text-red-500 mt-1"
+                                >
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</Layout>
+
+<script>
+    // Get project ID from URL query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get("id");
+
+    if (!id) {
+        window.location.href = "/retroplanning";
+    }
+
+    let project = null;
+
+    async function fetchProject() {
+        try {
+            const response = await fetch(
+                `http://localhost:8000/api/retroplanning/projects/${id}`,
+            );
+            project = await response.json();
+            updateUI();
+        } catch (error) {
+            console.error("Error fetching project:", error);
+        }
+    }
+
+    function updateUI() {
+        if (!project) return;
+
+        document.getElementById("project-title-header").textContent =
+            project.title;
+        document.getElementById("project-title-anchor").textContent =
+            project.title;
+        document.getElementById("final-deadline-badge").textContent =
+            `Launch: ${new Date(project.final_deadline).toLocaleDateString()}`;
+        document.getElementById("project-deadline-anchor").textContent =
+            new Date(project.final_deadline).toLocaleDateString();
+
+        renderTasks();
+    }
+
+    function renderTasks() {
+        const list = document.getElementById("tasks-list");
+        if (!list) return;
+
+        // Order tasks by internal_deadline descending (Working backwards)
+        const sortedTasks = [...project.tasks].sort(
+            (a, b) =>
+                new Date(b.internal_deadline).getTime() -
+                new Date(a.internal_deadline).getTime(),
+        );
+
+        list.innerHTML = sortedTasks
+            .map((task, index) => {
+                const isLatest = index === 0;
+                return `
+                <div class="relative z-10 flex items-center gap-4 group">
+                    <div class="w-12 h-12 rounded-xl border-2 ${task.status === "completed" ? "bg-green-500 border-green-500 text-white" : "bg-background border-blue-500/30 text-blue-500"} flex flex-col items-center justify-center font-bold text-xs shadow-sm transition-all group-hover:scale-110">
+                        <span>Day</span>
+                        <span>-${Math.ceil((new Date(project.final_deadline).getTime() - new Date(task.internal_deadline).getTime()) / (1000 * 3600 * 24))}</span>
+                    </div>
+                    <div class="bg-card border border-border p-5 rounded-2xl flex-1 hover:border-blue-500/30 transition-all shadow-sm group-hover:shadow-md">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h4 class="font-bold text-lg ${task.status === "completed" ? "line-through text-muted-foreground" : ""}">${task.title}</h4>
+                                <p class="text-xs text-muted-foreground flex items-center gap-3 mt-1">
+                                    <span class="flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        Límite: ${new Date(task.internal_deadline).toLocaleDateString()}
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                        Dura: ${task.duration_days}d
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="toggleTaskStatus(${task.id}, '${task.status}')" class="p-2 rounded-lg hover:bg-green-500/10 text-green-500 transition-colors">
+                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                </button>
+                                <button onclick="deleteTask(${task.id})" class="p-2 rounded-lg hover:bg-red-500/10 text-red-500 transition-colors">
+                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            })
+            .join("");
+    }
+
+    // Task Logic
+    document
+        .getElementById("task-form")
+        ?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const title = document.getElementById("task-title").value;
+            const duration = parseInt(
+                document.getElementById("task-duration").value,
+            );
+
+            // Find the "latest" deadline to subtract from.
+            // If no tasks, use project final_deadline.
+            let anchorDate = new Date(project.final_deadline);
+            if (project.tasks.length > 0) {
+                const deadlines = project.tasks.map((t) =>
+                    new Date(t.internal_deadline).getTime(),
+                );
+                anchorDate = new Date(Math.min(...deadlines));
+            }
+
+            // Subtract duration to get the new task's internal_deadline
+            const newDeadline = new Date(anchorDate);
+            newDeadline.setDate(newDeadline.getDate() - duration);
+
+            try {
+                const res = await fetch(
+                    `http://localhost:8000/api/retroplanning/projects/${id}/tasks`,
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            title,
+                            duration_days: duration,
+                            internal_deadline: newDeadline
+                                .toISOString()
+                                .split("T")[0],
+                            project_id: parseInt(id),
+                        }),
+                    },
+                );
+
+                if (res.ok) {
+                    e.target.reset();
+                    fetchProject();
+                }
+            } catch (error) {
+                console.error("Error creating task:", error);
+            }
+        });
+
+    window.toggleTaskStatus = async (taskId, currentStatus) => {
+        const newStatus =
+            currentStatus === "completed" ? "pending" : "completed";
+        try {
+            await fetch(
+                `http://localhost:8000/api/retroplanning/tasks/${taskId}`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ status: newStatus }),
+                },
+            );
+            fetchProject();
+        } catch (error) {
+            console.error("Error updating task:", error);
+        }
+    };
+
+    window.deleteTask = async (taskId) => {
+        if (!confirm("¿Eliminar esta tarea?")) return;
+        try {
+            await fetch(
+                `http://localhost:8000/api/retroplanning/tasks/${taskId}`,
+                {
+                    method: "DELETE",
+                },
+            );
+            fetchProject();
+        } catch (error) {
+            console.error("Error deleting task:", error);
+        }
+    };
+
+    // Initial load
+    fetchProject();
+</script>
+
+<style>
+    #eisenhower-chart {
+        width: 100% !important;
+        height: 100% !important;
+    }
+</style>
