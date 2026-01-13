@@ -1,7 +1,11 @@
 from sqlmodel import create_engine, Session, SQLModel
 from backend.app.config import DATABASE_URL
 
-engine = create_engine(DATABASE_URL, echo=False, connect_args={"check_same_thread": False})
+engine = create_engine(
+    DATABASE_URL, 
+    echo=False, 
+    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
+)
 
 def init_db():
     SQLModel.metadata.create_all(engine)

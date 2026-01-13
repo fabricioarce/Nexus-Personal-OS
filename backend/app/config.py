@@ -1,4 +1,7 @@
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Raíz del proyecto (Diario/)
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -27,5 +30,11 @@ METADATA_FILE = PROCESSED_DIR / "metadata.json"
 FAISS_INDEX_FILE = PROCESSED_DIR / "index.faiss"
 
 # ── DATABASE ─────────────────────────────
+import os
 DATABASE_PATH = DATA_DIR / "diario.db"
-DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+# Prioridad: Variable de entorno (Render/Railway) > SQLite local
+DATABASE_URL = os.environ.get("DATABASE_URL", f"sqlite:///{DATABASE_PATH}")
+
+# Fix para Render/Railway (devuelven postgres:// pero SQLAlchemy quiere postgresql://)
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
